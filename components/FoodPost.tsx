@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Animated, Easing, StyleSheet, View } from 'react-native';
-import { Snackbar, Card, Text, Tooltip, Chip } from 'react-native-paper';
+import { Alert, Animated, Easing, SafeAreaView, StyleSheet, View } from 'react-native';
+import { Snackbar, Card, Text, Tooltip, Chip, useTheme } from 'react-native-paper';
 
 import FoodData from './FoodData';
 import App from "../App";
@@ -10,24 +10,18 @@ import App from "../App";
 const timeNow = Date.now();
 
 export type Props = {
+    addMessage: (string) => void,
     data: FoodData;
 };
 
-export default function FoodPost({ data, ...rest }: Props) {
+export default function FoodPost({ addMessage, data, ...rest }: Props) {
     // Not snackbar
     const [expanded, setExpanded] = React.useState(false);
     const handlePress = () => setExpanded(!expanded);
-    // Snackbar
-    const [elements, setElements] = useState([]);
-    const addMessage = (message) => {
-        setElements([
-            ...elements,
-            { id: elements.length + 1, text: `Element ${elements.length + 1}` }
-        ])
-    };
+    const theme = useTheme();
     return (
         <View style={{ margin: 8 }}>
-            <Card onPress={handlePress}>
+            <Card mode="contained" style={{ backgroundColor: theme.colors.inverseOnSurface }} onPress={handlePress}>
                 <Card.Title titleStyle={{ fontWeight: 'bold', paddingTop: 8 }} titleVariant="titleLarge" titleNumberOfLines={2} style={{ flex: 3 }} title={data.location} subtitle={getTimeAgo(data.date)} rightStyle={{ paddingRight: 20 }}
                     right={(props) => <Text>&lt; 3 miles</Text>} />
                 {/* Show chips */}
@@ -41,19 +35,6 @@ export default function FoodPost({ data, ...rest }: Props) {
                     <Text variant="bodyLarge">{data.details}</Text>
                 </Card.Content>
             </Card>
-            <View style={{ top: 0, alignItems: 'center', position: 'absolute', flex: 1 }}>
-                {elements.map((element) => (
-                    <Snackbar style={{ top: 50 }} key={element.id} visible={true} onDismiss={() => { }}
-                        action={{
-                            label: 'Undo',
-                            onPress: () => {
-                                // Do something
-                            },
-                        }}>
-                        {element.text}
-                    </Snackbar>
-                ))}
-            </View>
         </View>
     );
 }
