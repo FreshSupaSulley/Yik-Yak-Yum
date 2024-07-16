@@ -27,7 +27,7 @@ export default function FoodPost({ data, ...rest }: Props) {
     };
     return (
         <View style={{ margin: 8 }}>
-            <Card mode="outlined" onPress={handlePress}>
+            <Card onPress={handlePress}>
                 <Card.Title titleStyle={{ fontWeight: 'bold', paddingTop: 8 }} titleVariant="titleLarge" titleNumberOfLines={2} style={{ flex: 3 }} title={data.location} subtitle={getTimeAgo(data.date)} rightStyle={{ paddingRight: 20 }}
                     right={(props) => <Text>&lt; 3 miles</Text>} />
                 {/* Show chips */}
