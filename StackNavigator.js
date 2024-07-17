@@ -15,14 +15,7 @@ const Tab = createBottomTabNavigator();
 function Tabs() {
   const theme = useTheme();
   return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarStyle: {
-          shadowOpacity: 0.3,
-          shadowRadius: 10,
-        },
-      }}
-    >
+    <Tab.Navigator>
       <Tab.Screen
         name="FoodScreen"
         component={FoodScreen}

@@ -14,7 +14,7 @@ const date = new Date();
 const foodData = [];
 
 // Pretend we called the API, got the last 5 days
-[...Array(2)].map((x, i) => {
+[...Array(1)].map((x, i) => {
   // API response
   let posts = [];
   // Temp offset the date

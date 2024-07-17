@@ -5,8 +5,6 @@ import { Card, Chip, MD3Theme, Text, useTheme } from 'react-native-paper';
 import FoodData from './FoodData';
 import { Theme } from "@react-navigation/native";
 
-// import { Avatar, Button, Card, CardActionArea, CardActions, CardContent, CardHeader, CardMedia, Collapse, IconButton, Typography } from '@mui/material';
-
 const timeNow = Date.now();
 
 export type Props = {
@@ -49,6 +47,7 @@ class FoodPost extends React.Component<Props> {
     }
     // Nothing ever updates (for now)
     shouldComponentUpdate(nextProps: Readonly<Props>, nextState: Readonly<{}>, nextContext: any): boolean {
+        console.log(nextProps);
         return false;
     }
 }
