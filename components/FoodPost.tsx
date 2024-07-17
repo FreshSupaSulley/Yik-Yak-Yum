@@ -1,23 +1,26 @@
-import React, { PureComponent } from "react";
+import React from "react";
 import { View } from 'react-native';
-import { Card, Chip, MD3Theme, Text, useTheme } from 'react-native-paper';
+import { Card, Chip, MD3Theme, Text } from 'react-native-paper';
 
 import FoodData from './FoodData';
-import { Theme } from "@react-navigation/native";
 
-const timeNow = Date.now();
-
-export type Props = {
+type Props = {
     addMessage: (string) => void,
     data: FoodData;
     theme: MD3Theme;
 };
 
-class FoodPost extends React.Component<Props> {
+interface State {
+    expanded: boolean;
+    fancyDate: string;
+}
+
+class FoodPost extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            expanded: false
+            expanded: false,
+            fancyDate: getTimeAgo(props.data.date)
         };
     }
     handlePress = () => {
@@ -26,10 +29,11 @@ class FoodPost extends React.Component<Props> {
     }
     render() {
         const { addMessage, data, theme, ...rest } = this.props;
+        const { fancyDate } = this.state;
         return (
             <View style={{ margin: 8 }}>
                 <Card mode="contained" style={{ backgroundColor: theme.colors.inverseOnSurface }} onPress={this.handlePress}>
-                    <Card.Title titleStyle={{ fontWeight: 'bold', paddingTop: 8 }} titleVariant="titleLarge" titleNumberOfLines={2} title={data.location} subtitle={getTimeAgo(data.date)} rightStyle={{ paddingRight: 20 }}
+                    <Card.Title titleStyle={{ fontWeight: 'bold', paddingTop: 8 }} titleVariant="titleLarge" titleNumberOfLines={2} title={data.location} subtitle={fancyDate} rightStyle={{ paddingRight: 20 }}
                         right={(props) => <Text>&lt; 3 miles</Text>} />
                     {/* Show chips */}
                     <Card.Content style={{ paddingTop: 8, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
@@ -45,9 +49,15 @@ class FoodPost extends React.Component<Props> {
             </View>
         );
     }
-    // Nothing ever updates (for now)
+    // Fired at least once per minute to update the subtitle
     shouldComponentUpdate(nextProps: Readonly<Props>, nextState: Readonly<{}>, nextContext: any): boolean {
-        console.log(nextProps);
+        // Check if we need to update fancyDate (if it's been a minute)
+        const newFancyDate = getTimeAgo(this.props.data.date);
+        if(this.state.fancyDate != newFancyDate) {
+            console.log("Updating");
+            this.setState({fancyDate: newFancyDate});
+            return true;
+        }
         return false;
     }
 }
