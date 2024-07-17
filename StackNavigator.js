@@ -7,6 +7,7 @@ import { Portal, useTheme } from "react-native-paper";
 // Screens
 import FoodScreen from "./screens/FoodScreen";
 import MapScreen from "./screens/MapScreen";
+import PostScreen from "./screens/PostScreen";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
 
@@ -32,6 +33,21 @@ function Tabs() {
           tabBarIcon: ({ focused }) => (
             <Ionicons
               name={focused ? "fast-food" : "fast-food-outline"}
+              size={24}
+              color={focused ? theme.colors.primary : theme.colors.onBackground}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="PostScreen"
+        component={PostScreen}
+        options={{
+          title: "Post",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={focused ? "add-circle" : "add-circle-outline"}
               size={24}
               color={focused ? theme.colors.primary : theme.colors.onBackground}
             />
