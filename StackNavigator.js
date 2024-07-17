@@ -2,7 +2,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useTheme } from "react-native-paper";
+import { Portal, useTheme } from "react-native-paper";
 
 // Screens
 import FoodScreen from "./screens/FoodScreen";

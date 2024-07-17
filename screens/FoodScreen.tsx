@@ -1,9 +1,11 @@
 import React, { useRef, useState } from "react";
 
-import { Text, SafeAreaView, SectionList, StyleSheet } from "react-native";
-import { Button, Card, Divider, IconButton, Snackbar, useTheme } from 'react-native-paper';
-import * as Theme from "../themes";
-
+import { SectionList, StyleSheet, View } from "react-native";
+import { Button, Card, Divider, Portal, Snackbar, useTheme } from 'react-native-paper';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import FoodData from "../components/FoodData";
 import FoodPost from "../components/FoodPost";
 
@@ -12,7 +14,7 @@ const date = new Date();
 const foodData = [];
 
 // Pretend we called the API, got the last 5 days
-[...Array(5)].map((x, i) => {
+[...Array(2)].map((x, i) => {
   // API response
   let posts = [];
   // Temp offset the date
@@ -45,37 +47,50 @@ export default function FoodScreen() {
 
   const theme = useTheme();
   // Snackbar
-  const [element, setElement] = useState('');
+  const [snackbarText, setSnackbarText] = useState('');
+  const [snackbarVisible, setSnackbarVisibility] = useState(false);
   const addMessage = (message) => {
-    setElement(message);
+    setSnackbarVisibility(false);
+    // Need to re-render snackbar to get duration timer to reset
+    setTimeout(() => {
+      setSnackbarText(message);
+      setSnackbarVisibility(true);
+    }, 0);
   };
+  const insets = useSafeAreaInsets();
   return (
-    <>
+    // <>
+    <Portal.Host>
       {/* List posts */}
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.onPrimary }}>
-        <SectionList
-          ref={scrollRef}
-          showsVerticalScrollIndicator={false}
-          style={{ marginBottom: 0 }}
-          stickySectionHeadersEnabled={true}
-          sections={foodData}
-          renderItem={({ item, index }) => {
-            return (
-              <FoodPost addMessage={addMessage} data={item} />
-            )
-          }} renderSectionHeader={({ section: { title, index } }) => (
-            <>
-              <Card.Title titleVariant={'headlineMedium'} style={[styles.titleContainer, { backgroundColor: theme.colors.onPrimary }]} title={title} subtitle={foodData[index].data.length > 0 ? foodData[index].data.length + " items" : "No items"} right={(props) => index > 0 && <Button compact onPress={() => scrollRef.current.scrollToLocation({ itemIndex: 0 })}>Back to Today</Button>} />
-              <Divider bold />
-            </>
-          )} onRefresh={onRefresh} refreshing={refreshing}>
-        </SectionList>
-      </SafeAreaView>
-      {/* Snackbar alerts */}
-      <Snackbar duration={1000} onIconPress={() => {addMessage('')}} icon='close' style={{}} visible={element.length > 0} onDismiss={() => addMessage('')}>
-        {element}
-      </Snackbar>
-    </>
+      <SafeAreaProvider>
+        {/* Adding paddingBottom seems to break shit */}
+        <View style={{ paddingTop: insets.top, flex: 1, backgroundColor: theme.colors.onPrimary }}>
+          <SectionList
+            ref={scrollRef}
+            showsVerticalScrollIndicator={false}
+            style={{ marginBottom: 0 }}
+            stickySectionHeadersEnabled={true}
+            sections={foodData}
+            renderItem={({ item, index }) => {
+              return (
+                <FoodPost addMessage={addMessage} data={item} theme={theme} />
+              )
+            }} renderSectionHeader={({ section: { title, index } }) => (
+              <>
+                <Card.Title titleVariant={'headlineMedium'} style={[styles.titleContainer, { backgroundColor: theme.colors.onPrimary }]} title={title} subtitle={foodData[index].data.length > 0 ? foodData[index].data.length + " items" : "No items"} right={(props) => index > 0 && <Button compact onPress={() => scrollRef.current.scrollToLocation({ itemIndex: 0 })}>Back to Today</Button>} />
+                <Divider bold />
+              </>
+            )} onRefresh={onRefresh} refreshing={refreshing}>
+          </SectionList>
+          {/* Snackbar for popup alerts */}
+          <Snackbar duration={3000} onIconPress={() => { setSnackbarVisibility(false) }} icon='close' visible={snackbarVisible} onDismiss={() => setSnackbarVisibility(false)}>
+            {snackbarText}
+          </Snackbar>
+        </View>
+      </SafeAreaProvider>
+    </Portal.Host>
+
+    // </>
   );
 }
 

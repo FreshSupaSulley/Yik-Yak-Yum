@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Alert, Animated, Easing, SafeAreaView, StyleSheet, View } from 'react-native';
-import { Snackbar, Card, Text, Tooltip, Chip, useTheme } from 'react-native-paper';
+import React, { PureComponent } from "react";
+import { View } from 'react-native';
+import { Card, Chip, MD3Theme, Text, useTheme } from 'react-native-paper';
 
 import FoodData from './FoodData';
-import App from "../App";
+import { Theme } from "@react-navigation/native";
 
 // import { Avatar, Button, Card, CardActionArea, CardActions, CardContent, CardHeader, CardMedia, Collapse, IconButton, Typography } from '@mui/material';
 
@@ -12,32 +12,47 @@ const timeNow = Date.now();
 export type Props = {
     addMessage: (string) => void,
     data: FoodData;
+    theme: MD3Theme;
 };
 
-export default function FoodPost({ addMessage, data, ...rest }: Props) {
-    // Not snackbar
-    const [expanded, setExpanded] = React.useState(false);
-    const handlePress = () => setExpanded(!expanded);
-    const theme = useTheme();
-    return (
-        <View style={{ margin: 8 }}>
-            <Card mode="contained" style={{ backgroundColor: theme.colors.inverseOnSurface }} onPress={handlePress}>
-                <Card.Title titleStyle={{ fontWeight: 'bold', paddingTop: 8 }} titleVariant="titleLarge" titleNumberOfLines={2} style={{ flex: 3 }} title={data.location} subtitle={getTimeAgo(data.date)} rightStyle={{ paddingRight: 20 }}
-                    right={(props) => <Text>&lt; 3 miles</Text>} />
-                {/* Show chips */}
-                <Card.Content style={{ paddingTop: 8, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-                    {data.transportation && <Chip onPress={() => addMessage("Hi")} icon="car">Off-Campus</Chip>}
-                    {data.phoneNeeded && <Chip icon="cellphone">Need Phone</Chip>}
-                    {data.doorAccess && <Chip icon="door-sliding-lock">Entry Needed</Chip>}
-                </Card.Content>
-                {/* Body */}
-                <Card.Content style={{ paddingTop: 8 }}>
-                    <Text variant="bodyLarge">{data.details}</Text>
-                </Card.Content>
-            </Card>
-        </View>
-    );
+class FoodPost extends PureComponent<Props> {
+    constructor(props: Props) {
+        super(props);
+        this.state = {
+            expanded: false
+        };
+    }
+    handlePress = () => {
+        console.log("pressed lol");
+        // this.setState(prevState => ({ expanded: !prevState.expanded }));
+    }
+
+    render() {
+        console.log("rendering " + Math.random());
+        const { addMessage, data, theme, ...rest } = this.props;
+        return (
+            <View style={{ margin: 8 }}>
+                <Card mode="contained" style={{ backgroundColor: theme.colors.inverseOnSurface }} onPress={this.handlePress}>
+                    <Card.Title titleStyle={{ fontWeight: 'bold', paddingTop: 8 }} titleVariant="titleLarge" titleNumberOfLines={2} title={data.location} subtitle={getTimeAgo(data.date)} rightStyle={{ paddingRight: 20 }}
+                        right={(props) => <Text>&lt; 3 miles</Text>} />
+                    {/* Show chips */}
+                    <Card.Content style={{ paddingTop: 8, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                        {<Chip compact onPress={() => addMessage("This item requires you to leave campus or use transportation")} icon="car">Off-Campus</Chip>}
+                        {<Chip compact onPress={() => addMessage("Bring your phone (fill out form, show voucher, etc.)")} icon="cellphone">Need Phone</Chip>}
+                        {<Chip compact onPress={() => addMessage("Food is behind locked doors or in a private event")} icon="door-sliding-lock">Entry Needed</Chip>}
+                    </Card.Content>
+                    {/* Body */}
+                    <Card.Content style={{ paddingTop: 8 }}>
+                        <Text variant="bodyLarge">{data.details}</Text>
+                    </Card.Content>
+                </Card>
+            </View>
+        );
+    }
 }
+
+// This is supposed to help with performance
+export default FoodPost;
 
 const getTimeAgo = (date) => {
     const now = new Date();
