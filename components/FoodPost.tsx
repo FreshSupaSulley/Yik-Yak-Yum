@@ -15,7 +15,7 @@ export type Props = {
     theme: MD3Theme;
 };
 
-class FoodPost extends PureComponent<Props> {
+class FoodPost extends React.Component<Props> {
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -26,9 +26,7 @@ class FoodPost extends PureComponent<Props> {
         console.log("pressed lol");
         // this.setState(prevState => ({ expanded: !prevState.expanded }));
     }
-
     render() {
-        console.log("rendering " + Math.random());
         const { addMessage, data, theme, ...rest } = this.props;
         return (
             <View style={{ margin: 8 }}>
@@ -48,6 +46,10 @@ class FoodPost extends PureComponent<Props> {
                 </Card>
             </View>
         );
+    }
+    // Nothing ever updates (for now)
+    shouldComponentUpdate(nextProps: Readonly<Props>, nextState: Readonly<{}>, nextContext: any): boolean {
+        return false;
     }
 }
 

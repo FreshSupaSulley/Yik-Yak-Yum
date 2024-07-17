@@ -60,8 +60,6 @@ export default function FoodScreen() {
   const insets = useSafeAreaInsets();
   return (
     // <>
-    <Portal.Host>
-      {/* List posts */}
       <SafeAreaProvider>
         {/* Adding paddingBottom seems to break shit */}
         <View style={{ paddingTop: insets.top, flex: 1, backgroundColor: theme.colors.onPrimary }}>
@@ -69,7 +67,6 @@ export default function FoodScreen() {
             ref={scrollRef}
             showsVerticalScrollIndicator={false}
             style={{ marginBottom: 0 }}
-            stickySectionHeadersEnabled={true}
             sections={foodData}
             renderItem={({ item, index }) => {
               return (
@@ -88,7 +85,6 @@ export default function FoodScreen() {
           </Snackbar>
         </View>
       </SafeAreaProvider>
-    </Portal.Host>
 
     // </>
   );
