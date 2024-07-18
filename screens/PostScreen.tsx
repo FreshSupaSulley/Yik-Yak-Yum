@@ -1,29 +1,32 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-import FoodData from "../components/FoodData";
+import { FoodDataContext } from '../components/FoodDataContext'; // Import context
 
 const PostScreen = () => {
+  const { foodData } = useContext(FoodDataContext); // Get foodData from context
   const [post, setPost] = useState('');
   const [tags, setTags] = useState([]);
-  const [tagInput, setTagInput] = useState('');
+
+  // Extract unique tags from foodData
+  const availableTags = [
+    'Door Access',
+    'Transportation',
+    'Phone Needed',
+    'Entry Needed',
+  ];
 
   const handlePostSubmit = () => {
-    // Logic for submitting the post
     console.log('Post submitted:', post);
     console.log('Tags:', tags);
   };
 
-  const addTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
-      setTagInput('');
+  const toggleTag = (tag) => {
+    if (tags.includes(tag)) {
+      setTags(tags.filter(t => t !== tag)); // Remove tag
+    } else {
+      setTags([...tags, tag]); // Add tag
     }
-  };
-
-  const removeTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
   return (
@@ -38,24 +41,18 @@ const PostScreen = () => {
         numberOfLines={4}
         placeholderTextColor="#888"
       />
+      <Text style={styles.subtitle}>Select Tags:</Text>
       <View style={styles.tagContainer}>
-        <TextInput
-          style={styles.tagInput}
-          placeholder="Add a tag (e.g. Off-Campus)"
-          value={tagInput}
-          onChangeText={setTagInput}
-          onSubmitEditing={addTag}
-          placeholderTextColor="#888"
-        />
-        <TouchableOpacity style={styles.addTagButton} onPress={addTag}>
-          <Text style={styles.addTagButtonText}>Add</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.tags}>
-        {tags.map((tag, index) => (
-          <TouchableOpacity key={index} style={styles.tag} onPress={() => removeTag(tag)}>
+        {availableTags.map((tag) => (
+          <TouchableOpacity
+            key={tag}
+            style={[styles.tag, tags.includes(tag) && styles.tagSelected]}
+            onPress={() => toggleTag(tag)}
+          >
             <Text style={styles.tagText}>{tag}</Text>
-            <Ionicons name="close-circle" size={16} color="#fff" />
+            {tags.includes(tag) && (
+              <Ionicons name="checkmark-circle" size={20} color="#fff" style={styles.checkIcon} />
+            )}
           </TouchableOpacity>
         ))}
       </View>
@@ -93,31 +90,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  tagContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  tagInput: {
-    flex: 1,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    backgroundColor: '#fff',
-    marginRight: 10,
-  },
-  addTagButton: {
-    backgroundColor: '#6200ee',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-  },
-  addTagButtonText: {
-    color: '#fff',
+  subtitle: {
+    fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 10,
   },
-  tags: {
+  tagContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginBottom: 20,
@@ -125,22 +103,26 @@ const styles = StyleSheet.create({
   tag: {
     backgroundColor: 'gray',
     borderRadius: 10,
-    padding: 5,
+    padding: 8,
     marginRight: 10,
     marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
   },
+  tagSelected: {
+    backgroundColor: '#6200ee',
+  },
   tagText: {
     color: '#fff',
-    marginRight: 5,
+  },
+  checkIcon: {
+    marginLeft: 5,
   },
   button: {
     backgroundColor: 'gray',
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
-    elevation: 2,
   },
   buttonText: {
     color: '#fff',
@@ -150,5 +132,4 @@ const styles = StyleSheet.create({
 });
 
 export default PostScreen;
-
 
