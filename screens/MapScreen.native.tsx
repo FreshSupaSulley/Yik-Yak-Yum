@@ -2,6 +2,7 @@ import { Text } from "react-native-paper";
 import { StyleSheet, Image, Platform, SafeAreaView, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { useRef } from "react";
+import { useRoute } from "@react-navigation/native";
 
 const osuRegion = {
   latitude: 39.9995,
@@ -10,7 +11,12 @@ const osuRegion = {
   longitudeDelta: 0.025,
 };
 
-export default function MapScreen() {
+export default function MapScreen({ navigation }) {
+  const route = useRoute();
+  const index = route.params && route.params.index;
+  // If index was never passed in, this is the first time opening the map
+  if(!index) {
+  }
   const mapRef = useRef<MapView>();
   return (
     <View>

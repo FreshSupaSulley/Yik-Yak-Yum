@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 
 import FoodData from "../components/FoodData";
 
-
 const PostScreen = () => {
   const [post, setPost] = useState('');
   const [tags, setTags] = useState([]);

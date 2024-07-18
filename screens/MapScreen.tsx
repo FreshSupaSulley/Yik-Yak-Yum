@@ -1,6 +1,7 @@
-import { Text } from "react-native-paper";
+import { Button, Text } from "react-native-paper";
 import { StyleSheet, Image, Platform, SafeAreaView, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
+import { useRoute } from "@react-navigation/native";
 
 const osuRegion = {
   latitude: 39.9995,
@@ -9,7 +10,7 @@ const osuRegion = {
   longitudeDelta: 0.025,
 };
 
-export default function MapScreen() {
+export default function MapScreen({ navigation }) {
   return (
     <View>
       <Text>Nah.</Text>

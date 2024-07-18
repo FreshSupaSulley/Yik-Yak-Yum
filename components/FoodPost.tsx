@@ -6,6 +6,7 @@ import FoodData from './FoodData';
 
 type Props = {
     addMessage: (string) => void,
+    onPress: () => void,
     data: FoodData;
     theme: MD3Theme;
 };
@@ -23,16 +24,16 @@ class FoodPost extends React.Component<Props, State> {
             fancyDate: getTimeAgo(props.data.date)
         };
     }
-    handlePress = () => {
-        console.log("pressed lol");
-        // this.setState(prevState => ({ expanded: !prevState.expanded }));
-    }
+    // handlePress = () => {
+    //     console.log("pressed lol");
+    //     // this.setState(prevState => ({ expanded: !prevState.expanded }));
+    // }
     render() {
         const { addMessage, data, theme, ...rest } = this.props;
         const { fancyDate } = this.state;
         return (
             <View style={{ margin: 8 }}>
-                <Card mode="contained" style={{ backgroundColor: theme.colors.inverseOnSurface }} onPress={this.handlePress}>
+                <Card mode="contained" style={{ backgroundColor: theme.colors.inverseOnSurface }} onPress={this.props.onPress}>
                     <Card.Title titleStyle={{ fontWeight: 'bold', paddingTop: 8 }} titleVariant="titleLarge" titleNumberOfLines={2} title={data.location} subtitle={fancyDate} rightStyle={{ paddingRight: 20 }}
                         right={(props) => <Text>&lt; 3 miles</Text>} />
                     {/* Show chips */}

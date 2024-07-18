@@ -1,27 +1,20 @@
-
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { IconButton, useTheme } from "react-native-paper";
+import { FoodDataProvider } from "./components/FoodDataContext";
 
 // Screens
+import SplashScreen from "./screens/SplashScreen";
 import FoodScreen from "./screens/FoodScreen";
 import MapScreen from "./screens/MapScreen";
 import PostScreen from "./screens/PostScreen";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useContext, useRef } from "react";
+import { FoodDataContext } from "./components/FoodDataContext";
 
 const Tab = createBottomTabNavigator();
-
-// Fancy add post button
-function AddButton({ onPress }) {
-  const theme = useTheme();
-  return (
-    <>
-      <IconButton iconColor="white" containerColor={theme.colors.primary} icon="plus" style={{ borderWidth: 3, borderColor: 'white', justifyContent: 'center', alignSelf: 'flex-end' }} size={50} onPress={onPress} />
-    </>
-  );
-}
 
 // Navigation is passed in
 function Tabs({ navigation }) {
@@ -44,7 +37,11 @@ function Tabs({ navigation }) {
         }}
       />
       {/* Fancy add button */}
-      <Tab.Screen name="Logout" children={() => { }} options={{ tabBarButton: () => (<AddButton onPress={() => navigation.navigate('PostScreen')} />) }} />
+      <Tab.Screen name="Logout" children={() => null} options={{
+        tabBarButton: () => (
+          <IconButton iconColor="white" containerColor={theme.colors.primary} icon="plus" style={{ borderWidth: 3, borderColor: 'white', alignSelf: 'center', marginBottom: 20 }} size={40} onPress={() => navigation.navigate('PostScreen')} />
+        )
+      }} />
       <Tab.Screen
         name="MapScreen"
         component={MapScreen}
@@ -67,10 +64,16 @@ function Tabs({ navigation }) {
 const Stack = createNativeStackNavigator();
 
 function Navigation() {
+  const navigationRef = useRef(null);
   return (
-    <>
-      <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
+      <FoodDataProvider initialized={() => navigationRef.current.navigate("Main")}>
         <Stack.Navigator>
+          {/* Splash */}
+          <Stack.Group screenOptions={{ animation: 'fade' }}>
+            <Stack.Screen name="SplashScreen" component={SplashScreen} />
+          </Stack.Group>
+          {/* Content */}
           <Stack.Screen
             name="Main"
             component={Tabs}
@@ -81,8 +84,8 @@ function Navigation() {
             <Stack.Screen name="PostScreen" component={PostScreen} />
           </Stack.Group>
         </Stack.Navigator>
-      </NavigationContainer>
-    </>
+      </FoodDataProvider>
+    </NavigationContainer>
   );
 }
 

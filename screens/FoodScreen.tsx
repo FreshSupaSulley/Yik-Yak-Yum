@@ -1,40 +1,19 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 
 import { SectionList, StyleSheet, View } from "react-native";
-import { Button, Card, Divider, Portal, Snackbar, useTheme } from 'react-native-paper';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-import FoodData from "../components/FoodData";
+import { Button, Card, Divider, Snackbar, useTheme } from 'react-native-paper';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FoodDataContext } from "../components/FoodDataContext";
 import FoodPost from "../components/FoodPost";
 
-// Get the date
-const date = new Date();
-const foodData = [];
+// Navigator is supplied by default
+export default function FoodScreen({ navigation }) {
+  // Get data
+  const { foodData, refreshData } = useContext(FoodDataContext);
+  console.log(foodData, refreshData);
+  // Set first title of data
+  // foodData[0].title = "Today";
 
-// Pretend we called the API, got the last 5 days
-[...Array(1)].map((x, i) => {
-  // API response
-  let posts = [];
-  // Temp offset the date
-  var prevDate = new Date();
-  prevDate.setDate(date.getDate() - i);
-  for (let i = 0; i < 10; i++) {
-    posts[i] = new FoodData('Buckeye Donuts', 'go to buckeye donuts and get a free donut with a student id because when you go and you get a student id they will give you af re donut because it sa special thig today and joh cena will be there and he gies every student with an a on their report card a high 5 and', 'lat and long lol', prevDate.getTime(), true, true, true);
-  }
-  // Fill in array
-  foodData[i] = {
-    title: prevDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric' }),
-    data: posts,
-    index: i
-  };
-});
-
-// Set first title of data
-foodData[0].title = "Today";
-
-export default function FoodScreen() {
   const [myTime, setMyTime] = useState(new Date());
   useEffect(() => {
     var timerID = setInterval(() => {
@@ -77,7 +56,9 @@ export default function FoodScreen() {
           extraData={myTime}
           renderItem={({ item, index }) => {
             return (
-              <FoodPost addMessage={addMessage} data={item} theme={theme} />
+              <FoodPost onPress={() => {
+                navigation.navigate("MapScreen", { index });
+              }} addMessage={addMessage} data={item} theme={theme} />
             )
           }} renderSectionHeader={({ section: { title, index } }) => (
             <>
