@@ -38,9 +38,9 @@ class FoodPost extends React.Component<Props, State> {
                         right={(props) => <Text>&lt; 3 miles</Text>} />
                     {/* Show chips */}
                     <Card.Content style={{ paddingTop: 8, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-                        {<Chip compact onPress={() => addMessage("This item requires you to leave campus or use transportation")} icon="car">Off-Campus</Chip>}
-                        {<Chip compact onPress={() => addMessage("Bring your phone (fill out form, show voucher, etc.)")} icon="cellphone">Need Phone</Chip>}
-                        {<Chip compact onPress={() => addMessage("Food is behind locked doors or in a private event")} icon="door-sliding-lock">Entry Needed</Chip>}
+                        {data.tags.map((tag) => (
+                            <Chip compact onPress={() => addMessage("This item requires you to leave campus or use transportation")} icon="car">{tag}</Chip>
+                        ))}
                     </Card.Content>
                     {/* Body */}
                     <Card.Content style={{ paddingTop: 8 }}>

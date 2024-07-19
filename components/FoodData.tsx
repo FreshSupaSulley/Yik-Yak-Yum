@@ -3,17 +3,13 @@ export default class FoodData {
     details: string;
     coords: string;
     date: number;
-    // Optional params
-    doorAccess?: boolean;
-    transportation?: boolean;
-    phoneNeeded?: boolean;
-    constructor(location: string, details: string, coords: string, date: number, doorAccess?: boolean, transportation?: boolean, phoneNeeded?: boolean) {
+    tags: Array<string>;
+    
+    constructor(location: string, details: string, coords: string, date: number, tags: Array<string>) {
         this.location = location;
         this.details = details;
         this.coords = coords;
         this.date = date;
-        this.doorAccess = doorAccess;
-        this.transportation = transportation;
-        this.phoneNeeded = phoneNeeded;
+        this.tags = tags;
     }
 }

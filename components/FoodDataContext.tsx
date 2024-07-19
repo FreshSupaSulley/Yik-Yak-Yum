@@ -30,7 +30,7 @@ export const FoodDataProvider = ({ children, initialized = () => {} }) => {
 
             let j = 0;
             dbPosts.forEach((snap) =>{
-                posts[j] = new FoodData(snap.data().location, snap.data().description, 'lat and long lol', prevDate.getTime(), true, true, true);
+                posts[j] = new FoodData(snap.data().location, snap.data().description, 'lat and long lol', prevDate.getTime(), snap.data().tags);
                 j++;
             })
             
