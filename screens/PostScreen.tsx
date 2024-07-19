@@ -16,7 +16,7 @@ const PostScreen = () => {
   // Extract unique tags from foodData
   const availableTags = [
     'Door Access',
-    'Transportation',
+    'Student ID Needed',
     'Phone Needed',
     'Entry Needed',
   ];
