@@ -1,5 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import FoodData from "./FoodData";
+import {getDocs, collection, query} from 'firebase/firestore'
+import {db} from '../firebase.js'
 
 type FoodDataContextType = {
     foodData: any[],
@@ -9,9 +11,13 @@ type FoodDataContextType = {
 // Initial value of nothing
 export const FoodDataContext = createContext<FoodDataContextType>(null);
 
+const postQuery = query(collection(db, "Posts"));
+
+
 export const FoodDataProvider = ({ children, initialized = () => {} }) => {
     const [foodData, setFoodData] = useState(null);
     const refreshData = async () => {
+        const dbPosts = await getDocs(postQuery);
         // Pretend we called the API, got the last 5 days
         const date = new Date();
         let newData = [];
@@ -21,9 +27,13 @@ export const FoodDataProvider = ({ children, initialized = () => {} }) => {
             // Temp offset the date
             var prevDate = new Date();
             prevDate.setDate(date.getDate() - i);
-            for (let i = 0; i < 10; i++) {
-                posts[i] = new FoodData('Buckeye Donuts', 'go to buckeye donuts and get a free donut with a student id because when you go and you get a student id they will give you af re donut because it sa special thig today and joh cena will be there and he gies every student with an a on their report card a high 5 and', 'lat and long lol', prevDate.getTime(), true, true, true);
-            }
+
+            let j = 0;
+            dbPosts.forEach((snap) =>{
+                posts[j] = new FoodData(snap.data().location, snap.data().description, 'lat and long lol', prevDate.getTime(), true, true, true);
+                j++;
+            })
+            
             // Fill in array
             newData[i] = {
                 title: prevDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric' }),

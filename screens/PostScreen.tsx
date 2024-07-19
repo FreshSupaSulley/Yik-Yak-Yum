@@ -2,17 +2,26 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { collection, getDoc, setDoc, addDoc } from "firebase/firestore";
+import {db} from "../firebase.js"
+
+
 import FoodData from "../components/FoodData";
 
 const PostScreen = () => {
-  const [post, setPost] = useState('');
+  const [location, setLocation] = useState('');
+  const [description, setDescription] = useState('');
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
 
   const handlePostSubmit = () => {
-    // Logic for submitting the post
-    console.log('Post submitted:', post);
-    console.log('Tags:', tags);
+    let posts = collection(db, 'Posts');
+    console.log(posts);
+    addDoc(posts, {
+      tags: tags,
+      description: description,
+      location: location
+    })
   };
 
   const addTag = () => {
@@ -31,9 +40,18 @@ const PostScreen = () => {
       <Text style={styles.title}>Share Free Food!</Text>
       <TextInput
         style={styles.input}
-        placeholder="Where can I find free food?"
-        value={post}
-        onChangeText={setPost}
+        placeholder="Description"
+        value={description}
+        onChangeText={setDescription}
+        multiline
+        numberOfLines={4}
+        placeholderTextColor="#888"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Location"
+        value={location}
+        onChangeText={setLocation}
         multiline
         numberOfLines={4}
         placeholderTextColor="#888"
