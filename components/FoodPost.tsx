@@ -38,8 +38,8 @@ class FoodPost extends React.Component<Props, State> {
                         right={(props) => <Text>&lt; 3 miles</Text>} />
                     {/* Show chips */}
                     <Card.Content style={{ paddingTop: 8, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-                        {data.tags.map((tag) => (
-                            <Chip compact onPress={() => addMessage("This item requires you to leave campus or use transportation")} icon="car">{tag}</Chip>
+                        {data.tags.map((tag, key) => (
+                            <Chip compact key={key} onPress={() => addMessage("This item requires you to leave campus or use transportation")} icon={tag.icon}>{tag.name}</Chip>
                         ))}
                     </Card.Content>
                     {/* Body */}
@@ -54,9 +54,9 @@ class FoodPost extends React.Component<Props, State> {
     shouldComponentUpdate(nextProps: Readonly<Props>, nextState: Readonly<{}>, nextContext: any): boolean {
         // Check if we need to update fancyDate (if it's been a minute)
         const newFancyDate = getTimeAgo(this.props.data.date);
-        if(this.state.fancyDate != newFancyDate) {
+        if (this.state.fancyDate != newFancyDate) {
             console.log("Updating");
-            this.setState({fancyDate: newFancyDate});
+            this.setState({ fancyDate: newFancyDate });
             return true;
         }
         return false;

@@ -13,14 +13,6 @@ const PostScreen = () => {
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState([]);
 
-  // Extract unique tags from foodData
-  const availableTags = [
-    'Door Access',
-    'Transportation',
-    'Phone Needed',
-    'Entry Needed',
-  ];
-
   const handlePostSubmit = () => {
     let posts = collection(db, 'Posts');
     console.log(posts);
@@ -62,7 +54,7 @@ const PostScreen = () => {
       />
       <Text style={styles.subtitle}>Select Tags:</Text>
       <View style={styles.tagContainer}>
-        {availableTags.map((tag) => (
+        {FoodData.Tag.map((tag) => (
           <TouchableOpacity
             key={tag}
             style={[styles.tag, tags.includes(tag) && styles.tagSelected]}

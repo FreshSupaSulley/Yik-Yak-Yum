@@ -11,13 +11,19 @@ type FoodDataContextType = {
 // Initial value of nothing
 export const FoodDataContext = createContext<FoodDataContextType>(null);
 
+// Probably should have a caching system
 const postQuery = query(collection(db, "Posts"));
-
 
 export const FoodDataProvider = ({ children, initialized = () => {} }) => {
     const [foodData, setFoodData] = useState(null);
     const refreshData = async () => {
-        const dbPosts = await getDocs(postQuery);
+        // Seems like this won't ever fail. If firebase can't be reached it still returns a response?
+        const dbPosts = await getDocs(postQuery).then((response) => {
+            console.log(response, "yay");
+            return response;
+        }).catch((error) => {
+            console.error(error, "aww");
+        });
         // Pretend we called the API, got the last 5 days
         const date = new Date();
         let newData = [];
