@@ -47,7 +47,7 @@ export const FoodDataProvider = ({ children, initialized = () => {} }) => {
                 data: posts,
             };
         });
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // await new Promise((resolve) => setTimeout(resolve, 2000));
         // Update global data
         setFoodData(newData);
         console.log("NEW DATA!!!");

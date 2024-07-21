@@ -1,26 +1,39 @@
-import React, { useContext, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { collection, getDoc, setDoc, addDoc } from "firebase/firestore";
-import {db} from "../firebase.js"
+import { db } from "../firebase.js"
 
 
-import FoodData from "../components/FoodData";
+import FoodData, { Tag } from "../components/FoodData";
+import MapView from 'react-native-maps';
+import MapScreen, { osuRegion } from './MapScreen.native';
+import { Button, TextInput } from 'react-native-paper';
+import { useRoute } from '@react-navigation/native';
 
-const PostScreen = () => {
-  const [location, setLocation] = useState('');
+const PostScreen = ({ navigation }) => {
+  const route = useRoute();
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [location, setLocation] = useState<[number, number | null]>(null);
   const [tags, setTags] = useState([]);
 
+  // Route doesn't become available until rendered apparently
+  useEffect(() => {
+    const location = route.params?.['location'];
+    if(location) {
+      setLocation(location);
+    }
+  }, [route.params?.['location']]);
   const handlePostSubmit = () => {
     let posts = collection(db, 'Posts');
-    console.log(posts);
-    addDoc(posts, {
-      tags: tags,
-      description: description,
-      location: location
-    })
+    console.log(tags);
+    // addDoc(posts, {
+    //   tags: tags,
+    //   description: description,
+    //   location: location
+    // });
   };
 
   const toggleTag = (tag) => {
@@ -32,49 +45,62 @@ const PostScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Share Free Food!</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-        multiline
-        numberOfLines={4}
-        placeholderTextColor="#888"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Location"
-        value={location}
-        onChangeText={setLocation}
-        multiline
-        numberOfLines={4}
-        placeholderTextColor="#888"
-      />
-      <Text style={styles.subtitle}>Select Tags:</Text>
-      <View style={styles.tagContainer}>
-        {FoodData.Tag.map((tag) => (
-          <TouchableOpacity
-            key={tag}
-            style={[styles.tag, tags.includes(tag) && styles.tagSelected]}
-            onPress={() => toggleTag(tag)}
-          >
-            <Text style={styles.tagText}>{tag}</Text>
-            {tags.includes(tag) && (
-              <Ionicons name="checkmark-circle" size={20} color="#fff" style={styles.checkIcon} />
-            )}
-          </TouchableOpacity>
-        ))}
-      </View>
-      <TouchableOpacity style={styles.button} onPress={handlePostSubmit}>
-        <Text style={styles.buttonText}>Post</Text>
-      </TouchableOpacity>
-    </ScrollView>
+    <SafeAreaView>
+      <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <Text style={styles.title}>What's free?</Text>
+        {/* Title / Description */}
+        <View style={styles.section}>
+          <TextInput
+            label="Title *"
+            mode='outlined'
+            maxLength={50}
+            placeholder="Free Pastry at Buckeye Donuts"
+            value={title}
+            onChangeText={setTitle}
+            numberOfLines={1}
+            placeholderTextColor="#888"
+          />
+          <TextInput
+            label="Details *"
+            mode='outlined'
+            placeholder="One free donut with a student ID"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            numberOfLines={4}
+            placeholderTextColor="#888"
+          />
+        </View>
+        {/* Begin location section. Pick a point on the map */}
+        <View style={styles.section}>
+          {/* Choose a location on the map instead */}
+          <Button onPress={() => navigation.navigate("MapSelectScreen", { location })} icon="map-marker" mode={location ? 'outlined' : 'contained'}>{location ? `${location[0].toFixed(4)}, ${location[1].toFixed(4)}` : 'Set Location'}</Button>
+        </View>
+        <View style={styles.tagContainer}>
+          {/* For each tag, create a button for it */}
+          {Object.values(Tag).map((value, index) => {
+            return (
+              <TouchableOpacity key={index} style={[styles.tag, tags.includes(value) && styles.tagSelected]} onPress={() => toggleTag(value)}>
+                {/* Tag name */}
+                <Text style={styles.tagText}>{value}</Text>
+                {/* Include checkmark if selected */}
+                {tags.includes(value) && <Ionicons name="checkmark-circle" size={20} color="#fff" style={styles.checkIcon} />}
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+        <TouchableOpacity style={styles.button} onPress={handlePostSubmit}>
+          <Text style={styles.buttonText}>Post</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  section: {
+    marginBottom: 30
+  },
   container: {
     flexGrow: 1,
     padding: 16,
@@ -84,11 +110,9 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 20,
-    textAlign: 'center',
-    color: '#333',
+    // textAlign: 'center',
   },
   input: {
-    height: 100,
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 10,

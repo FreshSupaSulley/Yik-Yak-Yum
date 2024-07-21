@@ -4,7 +4,7 @@ import MapView, { Marker } from "react-native-maps";
 import { useRef } from "react";
 import { useRoute } from "@react-navigation/native";
 
-const osuRegion = {
+export const osuRegion = {
   latitude: 39.9995,
   longitude: -83.0127,
   latitudeDelta: 0.025,

@@ -10,6 +10,8 @@ import FoodScreen from "./screens/FoodScreen";
 import MapScreen from "./screens/MapScreen";
 import PostScreen from "./screens/PostScreen";
 import SplashScreen from "./screens/SplashScreen";
+import MapSelectScreen from "./screens/MapSelectScreen";
+
 import ScalablePress from "./components/ScalablePress";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -104,7 +106,7 @@ function Navigation() {
     <NavigationContainer ref={navigationRef}>
       <FoodDataProvider initialized={() => navigationRef.current.navigate("Main")}>
         {/* Configure global screen options */}
-        <Stack.Navigator screenOptions={{ gestureEnabled: false, headerShown: false }}>
+        <Stack.Navigator screenOptions={{ gestureEnabled: false, headerShown: false, headerBackTitle: "Back" }}>
           {/* Splash */}
           <Stack.Group>
             <Stack.Screen name="SplashScreen" component={SplashScreen} />
@@ -112,8 +114,9 @@ function Navigation() {
           {/* Content */}
           <Stack.Screen name="Main" component={Tabs} options={{ animation: 'fade' }} />
           {/* Popup modal when add button is clicked */}
-          <Stack.Group screenOptions={{ headerTitle: "Share Free Food", headerShown: true, gestureEnabled: true, presentation: 'modal' }}>
+          <Stack.Group screenOptions={{ headerTitle: "Share Free Food", headerShown: true, gestureEnabled: true }}>
             <Stack.Screen name="PostScreen" component={PostScreen} />
+            <Stack.Screen options={{ headerBackTitle: "Cancel", headerTitle: "Select Location" }} name="MapSelectScreen" component={MapSelectScreen} />
           </Stack.Group>
         </Stack.Navigator>
       </FoodDataProvider>

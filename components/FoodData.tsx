@@ -15,9 +15,10 @@ export default class FoodData {
 }
 
 export enum Tag {
-    OffCampus = "OffCampus",
-    NeedEntry = "NeedEntry",
-    NeedPhone = "NeedPhone",
+    OffCampus = "Off-Campus",
+    NeedEntry = "Need Entry",
+    NeedPhone = "Need Phone",
+    StudentID = "Need Student ID",
 }
 
 export const TagDetails = {
@@ -35,5 +36,10 @@ export const TagDetails = {
         name: Tag.NeedPhone,
         description: "Bring your phone (fill out form, show voucher, etc.)",
         icon: "phone",
+    },
+    [Tag.StudentID]: {
+        name: Tag.StudentID,
+        description: "Requires your student ID",
+        icon: "id",
     },
 };
