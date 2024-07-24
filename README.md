@@ -1,7 +1,7 @@
 # Yik Yak Yum
 React native app that allows people to find free food nearby
 
-note to self: [here](icons.expo.fyi) for icon browsing, [here](https://callstack.github.io/react-native-paper/docs/guides/theming/#creating-dynamic-theme-colors) for theme generation
+note to self: [here](https://icons.expo.fyi) for icon browsing, [here](https://callstack.github.io/react-native-paper/docs/guides/theming/#creating-dynamic-theme-colors) for theme generation
 
 # Welcome to your Expo app 👋
 

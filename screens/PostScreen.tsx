@@ -11,18 +11,19 @@ import MapView from 'react-native-maps';
 import MapScreen, { osuRegion } from './MapScreen.native';
 import { Button, TextInput } from 'react-native-paper';
 import { useRoute } from '@react-navigation/native';
+import { DetailedLocation } from './MapSelectScreen.native.js';
 
 const PostScreen = ({ navigation }) => {
   const route = useRoute();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [location, setLocation] = useState<[number, number | null]>(null);
+  const [location, setLocation] = useState<DetailedLocation>(null);
   const [tags, setTags] = useState([]);
 
   // Route doesn't become available until rendered apparently
   useEffect(() => {
     const location = route.params?.['location'];
-    if(location) {
+    if (location) {
       setLocation(location);
     }
   }, [route.params?.['location']]);
@@ -74,7 +75,9 @@ const PostScreen = ({ navigation }) => {
         {/* Begin location section. Pick a point on the map */}
         <View style={styles.section}>
           {/* Choose a location on the map instead */}
-          <Button onPress={() => navigation.navigate("MapSelectScreen", { location })} icon="map-marker" mode={location ? 'outlined' : 'contained'}>{location ? `${location[0].toFixed(4)}, ${location[1].toFixed(4)}` : 'Set Location'}</Button>
+          <Button onPress={() => navigation.navigate("MapSelectScreen", { location })} icon="map-marker" mode={location ? 'outlined' : 'contained'}>
+            {location ? location.title || `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : 'Set Location'}
+          </Button>
         </View>
         <View style={styles.tagContainer}>
           {/* For each tag, create a button for it */}

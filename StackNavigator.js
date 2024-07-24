@@ -37,6 +37,16 @@ function Tabs({ navigation }) {
   const theme = useTheme();
   return (
     <Tab.Navigator screenOptions={{ tabBarButton: (props) => <TabButton {...props} />, tabBarShowLabel: false, headerShown: false, tabBarActiveTintColor: theme.colors.primary, tabBarInactiveTintColor: theme.colors.onBackground }}>
+      <Tab.Screen
+        name="MapSelect"
+        component={MapSelectScreen}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons name={focused ? "fast-food" : "fast-food-outline"} size={iconSize} color={color} />
+          ),
+        }}
+      />
       {/* Food screen */}
       <Tab.Screen
         name="FoodScreen"
