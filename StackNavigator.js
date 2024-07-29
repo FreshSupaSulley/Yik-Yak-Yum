@@ -1,21 +1,21 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Platform, Animated, TouchableOpacity, View } from "react-native";
-import { Button, IconButton, useTheme } from "react-native-paper";
+import { Animated, StyleSheet, View } from "react-native";
+import { IconButton, Snackbar, useTheme } from "react-native-paper";
 import { FoodDataProvider } from "./components/FoodDataContext";
 
 // Screens
 import FoodScreen from "./screens/FoodScreen";
 import MapScreen from "./screens/MapScreen";
+import MapSelectScreen from "./screens/MapSelectScreen";
 import PostScreen from "./screens/PostScreen";
 import SplashScreen from "./screens/SplashScreen";
-import MapSelectScreen from "./screens/MapSelectScreen";
 
 import ScalablePress from "./components/ScalablePress";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useEffect, useRef } from "react";
+import { useRef, useState } from "react";
 
 // Custom tab button so we can add fancy click effects
 const TabButton = (props) => {
@@ -37,16 +37,6 @@ function Tabs({ navigation }) {
   const theme = useTheme();
   return (
     <Tab.Navigator screenOptions={{ tabBarButton: (props) => <TabButton {...props} />, tabBarShowLabel: false, headerShown: false, tabBarActiveTintColor: theme.colors.primary, tabBarInactiveTintColor: theme.colors.onBackground }}>
-      <Tab.Screen
-        name="MapSelect"
-        component={MapSelectScreen}
-        options={{
-          headerShown: false,
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons name={focused ? "fast-food" : "fast-food-outline"} size={iconSize} color={color} />
-          ),
-        }}
-      />
       {/* Food screen */}
       <Tab.Screen
         name="FoodScreen"
@@ -63,13 +53,11 @@ function Tabs({ navigation }) {
           const animation = useRef(new Animated.Value(0)).current;
           // Smooth scale when pressed and held
           function onPressIn() {
-            console.log("pressed");
             Animated.spring(animation, {
               toValue: 1, useNativeDriver: true,
             }).start();
           }
           function onPressOut() {
-            console.log("out");
             Animated.spring(animation, {
               toValue: 0, useNativeDriver: true,
             }).start();
@@ -110,11 +98,22 @@ function Tabs({ navigation }) {
 
 const Stack = createNativeStackNavigator();
 
-function Navigation() {
+export const Navigation = () => {
   const navigationRef = useRef(null);
+  // Snackbar
+  const [snackbarText, setSnackbarText] = useState('');
+  const [snackbarVisible, setSnackbarVisibility] = useState(false);
+  const addMessage = (message) => {
+    setSnackbarVisibility(false);
+    // Need to re-render snackbar to get duration timer to reset
+    setTimeout(() => {
+      setSnackbarText(message);
+      setSnackbarVisibility(true);
+    }, 0);
+  };
   return (
     <NavigationContainer ref={navigationRef}>
-      <FoodDataProvider initialized={() => navigationRef.current.navigate("Main")}>
+      <FoodDataProvider initialized={() => navigationRef.current.navigate("Main")} failed={(error) => navigationRef.current.navigate("SplashScreen", { error })} onSnackbar={addMessage} >
         {/* Configure global screen options */}
         <Stack.Navigator screenOptions={{ gestureEnabled: false, headerShown: false, headerBackTitle: "Back" }}>
           {/* Splash */}
@@ -130,8 +129,12 @@ function Navigation() {
           </Stack.Group>
         </Stack.Navigator>
       </FoodDataProvider>
+      {/* Snackbar for popup alerts */}
+      <Snackbar style={{ marginBottom: 60 }} duration={3000} onIconPress={() => { setSnackbarVisibility(false) }} icon='close' visible={snackbarVisible} onDismiss={() => setSnackbarVisibility(false)}>
+        {snackbarText}
+      </Snackbar>
     </NavigationContainer>
   );
 }
 
-export default Navigation;
+export default Navigation

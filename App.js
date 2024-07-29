@@ -8,7 +8,7 @@ import { AutocompleteDropdownContextProvider } from 'react-native-autocomplete-d
 export default function App() {
   // Call API
   let colorScheme = Appearance.getColorScheme();
-  // colorScheme = "dark";
+  colorScheme = "light";
   return (
     <AutocompleteDropdownContextProvider>
       {/* Including this seems to theme the bar correctly without any params. Maybe it's based off PaperProvider */}

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 
 import { SectionList, StyleSheet, View } from "react-native";
-import { Button, Card, Divider, Snackbar, useTheme } from 'react-native-paper';
+import { Button, Card, Divider, useTheme } from 'react-native-paper';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FoodDataContext } from "../components/FoodDataContext";
 import FoodPost from "../components/FoodPost";
@@ -9,11 +9,11 @@ import FoodPost from "../components/FoodPost";
 // Navigator is supplied by default
 export default function FoodScreen({ navigation }) {
   // Get data
-  const { foodData, refreshData } = useContext(FoodDataContext);
+  const { foodData, setSnackbar, refreshData } = useContext(FoodDataContext);
   console.log(foodData, refreshData);
   // Set first title of data
   // foodData[0].title = "Today";
-
+  // Constantly check each minute for new updates
   const [myTime, setMyTime] = useState(new Date());
   useEffect(() => {
     var timerID = setInterval(() => {
@@ -30,18 +30,8 @@ export default function FoodScreen({ navigation }) {
       setRefreshing(false);
     }, 2000);
   }, []);
+
   const theme = useTheme();
-  // Snackbar
-  const [snackbarText, setSnackbarText] = useState('');
-  const [snackbarVisible, setSnackbarVisibility] = useState(false);
-  const addMessage = (message) => {
-    setSnackbarVisibility(false);
-    // Need to re-render snackbar to get duration timer to reset
-    setTimeout(() => {
-      setSnackbarText(message);
-      setSnackbarVisibility(true);
-    }, 0);
-  };
   const insets = useSafeAreaInsets();
   return (
     // <>
@@ -58,7 +48,7 @@ export default function FoodScreen({ navigation }) {
             return (
               <FoodPost onPress={() => {
                 navigation.navigate("MapScreen", { index });
-              }} addMessage={addMessage} data={item} theme={theme} />
+              }} addMessage={setSnackbar} data={item} theme={theme} />
             )
           }} renderSectionHeader={({ section: { title, index } }) => (
             <>
@@ -67,10 +57,6 @@ export default function FoodScreen({ navigation }) {
             </>
           )} onRefresh={onRefresh} refreshing={refreshing}>
         </SectionList>
-        {/* Snackbar for popup alerts */}
-        <Snackbar duration={3000} onIconPress={() => { setSnackbarVisibility(false) }} icon='close' visible={snackbarVisible} onDismiss={() => setSnackbarVisibility(false)}>
-          {snackbarText}
-        </Snackbar>
       </View>
     </SafeAreaProvider>
 

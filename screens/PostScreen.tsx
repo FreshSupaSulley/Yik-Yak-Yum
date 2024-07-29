@@ -1,40 +1,58 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { collection, getDoc, setDoc, addDoc } from "firebase/firestore";
-import { db } from "../firebase.js"
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "../firebase.js";
 
-
-import FoodData, { Tag } from "../components/FoodData";
-import MapView from 'react-native-maps';
-import MapScreen, { osuRegion } from './MapScreen.native';
-import { Button, TextInput } from 'react-native-paper';
 import { useRoute } from '@react-navigation/native';
-import { DetailedLocation } from './MapSelectScreen.native.js';
+import * as Location from 'expo-location';
+import { LatLng } from 'react-native-maps';
+import { Button, Card, Divider, Text, TextInput } from 'react-native-paper';
+import { Tag, TagDetails } from "../components/FoodData";
+import { FoodDataContext } from "../components/FoodDataContext";
 
 const PostScreen = ({ navigation }) => {
   const route = useRoute();
+  const { setSnackbar } = useContext(FoodDataContext);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [location, setLocation] = useState<DetailedLocation>(null);
+  const [locationEnabled, setLocationEnabled] = useState<boolean>(false);
+  const [userLocation, setUserLocation] = useState<LatLng>();
+  const [location, setLocation] = useState<LatLng>(null);
   const [tags, setTags] = useState([]);
 
-  // Route doesn't become available until rendered apparently
+  Location.getForegroundPermissionsAsync().then(async response => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    // If location services are enabled
+    if (response.status === 'granted') {
+      setLocationEnabled(true);
+      // Get location
+      let { coords } = await Location.getCurrentPositionAsync();
+      setUserLocation({ latitude: coords.latitude, longitude: coords.longitude });
+    }
+  });
+
+  // Receive location from select screen
   useEffect(() => {
     const location = route.params?.['location'];
     if (location) {
       setLocation(location);
+      navigation.goBack();
     }
-  }, [route.params?.['location']]);
+  }, [route.params]);
+
   const handlePostSubmit = () => {
-    let posts = collection(db, 'Posts');
-    console.log(tags);
-    // addDoc(posts, {
-    //   tags: tags,
-    //   description: description,
-    //   location: location
-    // });
+    let body = {
+      title, description, location, tags
+    };
+    console.log(body);
+    addDoc(collection(db, 'Posts'), body).then((response) => {
+      setSnackbar("Post added!");
+    }).catch(error => {
+      console.error("Failed to create food post", error);
+      setSnackbar(String(error));
+    });
   };
 
   const toggleTag = (tag) => {
@@ -46,55 +64,66 @@ const PostScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView>
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <Text style={styles.title}>What's free?</Text>
-        {/* Title / Description */}
-        <View style={styles.section}>
-          <TextInput
-            label="Title *"
-            mode='outlined'
-            maxLength={50}
-            placeholder="Free Pastry at Buckeye Donuts"
-            value={title}
-            onChangeText={setTitle}
-            numberOfLines={1}
-            placeholderTextColor="#888"
-          />
-          <TextInput
-            label="Details *"
-            mode='outlined'
-            placeholder="One free donut with a student ID"
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            numberOfLines={4}
-            placeholderTextColor="#888"
-          />
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView>
+        <View style={{ padding: 16, paddingBottom: 0 }}>
+          {/* Title / Description */}
+          <Card style={styles.section}>
+            <Card.Content>
+              <Text style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 16 }}>What's free?</Text>
+              <TextInput
+                style={{ marginBottom: 4 }}
+                label="Title *"
+                mode='outlined'
+                maxLength={50}
+                placeholder="Free Pastry at Buckeye Donuts"
+                value={title}
+                onChangeText={setTitle}
+                numberOfLines={1}
+                placeholderTextColor="#888"
+              />
+              <TextInput
+                label="Details *"
+                mode='outlined'
+                maxLength={300}
+                placeholder="One free donut with a student ID"
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                numberOfLines={4}
+                placeholderTextColor="#888"
+              />
+            </Card.Content>
+          </Card>
+          {/* Begin location section. Pick a point on the map */}
+          <View style={[{ paddingBottom: 12 }]}>
+            {/* Choose a location on the map instead */}
+            {!locationEnabled && <Button onPress={() => { }} style={{ paddingBottom: 4 }} icon="near-me" mode='text'>
+              Enable Location Services
+            </Button>}
+            <Button disabled={!locationEnabled} onPress={() => navigation.navigate("MapSelectScreen", { location, userLocation })} icon="map-marker" mode='outlined'>
+              {location ? `${location.latitude}, ${location.longitude}` : 'Add Location'}
+            </Button>
+          </View>
         </View>
-        {/* Begin location section. Pick a point on the map */}
-        <View style={styles.section}>
-          {/* Choose a location on the map instead */}
-          <Button onPress={() => navigation.navigate("MapSelectScreen", { location })} icon="map-marker" mode={location ? 'outlined' : 'contained'}>
-            {location ? location.title || `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : 'Set Location'}
-          </Button>
-        </View>
-        <View style={styles.tagContainer}>
+        {/* Scroll through tags */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.section} contentContainerStyle={{ gap: 8, paddingHorizontal: 16, justifyContent: 'center', alignContent: 'center', alignItems: 'center', alignSelf: 'center' }}>
           {/* For each tag, create a button for it */}
           {Object.values(Tag).map((value, index) => {
+            {/* Include checkmark if selected */ }
             return (
-              <TouchableOpacity key={index} style={[styles.tag, tags.includes(value) && styles.tagSelected]} onPress={() => toggleTag(value)}>
+              <Button key={index} textColor='white' icon={tags.includes(value) ? 'check-circle-outline' : TagDetails[value].icon} style={[styles.tag, tags.includes(value) && styles.tagSelected]} onPress={() => toggleTag(value)}>
                 {/* Tag name */}
-                <Text style={styles.tagText}>{value}</Text>
-                {/* Include checkmark if selected */}
-                {tags.includes(value) && <Ionicons name="checkmark-circle" size={20} color="#fff" style={styles.checkIcon} />}
-              </TouchableOpacity>
+                {value}
+              </Button>
             )
           })}
+        </ScrollView>
+        {/* Post button */}
+        <View style={{ padding: 16, paddingTop: 0, gap: 16 }}>
+          <Divider />
+          <Button disabled={!title || !description} mode='contained' onPress={handlePostSubmit}>Post</Button>
         </View>
-        <TouchableOpacity style={styles.button} onPress={handlePostSubmit}>
-          <Text style={styles.buttonText}>Post</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -109,30 +138,6 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#f9f9f9',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    // textAlign: 'center',
-  },
-  input: {
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
-    backgroundColor: '#fff',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
   tagContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -141,31 +146,10 @@ const styles = StyleSheet.create({
   tag: {
     backgroundColor: 'gray',
     borderRadius: 10,
-    padding: 8,
-    marginRight: 10,
-    marginBottom: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
+    // padding: 8,
   },
   tagSelected: {
     backgroundColor: '#6200ee',
-  },
-  tagText: {
-    color: '#fff',
-  },
-  checkIcon: {
-    marginLeft: 5,
-  },
-  button: {
-    backgroundColor: 'gray',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
 });
 

@@ -2,7 +2,7 @@ import React from "react";
 import { View } from 'react-native';
 import { Card, Chip, MD3Theme, Text } from 'react-native-paper';
 
-import FoodData from './FoodData';
+import FoodData, { Tag, TagDetails } from './FoodData';
 
 type Props = {
     addMessage: (string) => void,
@@ -34,12 +34,12 @@ class FoodPost extends React.Component<Props, State> {
         return (
             <View style={{ margin: 8 }}>
                 <Card mode="contained" style={{ backgroundColor: theme.colors.inverseOnSurface }} onPress={this.props.onPress}>
-                    <Card.Title titleStyle={{ fontWeight: 'bold', paddingTop: 8 }} titleVariant="titleLarge" titleNumberOfLines={2} title={data.location} subtitle={fancyDate} rightStyle={{ paddingRight: 20 }}
+                    <Card.Title titleStyle={{ fontWeight: 'bold', paddingTop: 8 }} titleVariant="titleLarge" titleNumberOfLines={2} title={data.title} subtitle={fancyDate} rightStyle={{ paddingRight: 20 }}
                         right={(props) => <Text>&lt; 3 miles</Text>} />
                     {/* Show chips */}
                     <Card.Content style={{ paddingTop: 8, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
                         {data.tags.map((tag, key) => (
-                            <Chip compact key={key} onPress={() => addMessage("This item requires you to leave campus or use transportation")} icon={tag.icon}>{tag.name}</Chip>
+                            <Chip compact key={key} onPress={() => addMessage(TagDetails[tag].description)} icon={TagDetails[tag].icon}>{TagDetails[tag].name}</Chip>
                         ))}
                     </Card.Content>
                     {/* Body */}
@@ -55,7 +55,6 @@ class FoodPost extends React.Component<Props, State> {
         // Check if we need to update fancyDate (if it's been a minute)
         const newFancyDate = getTimeAgo(this.props.data.date);
         if (this.state.fancyDate != newFancyDate) {
-            console.log("Updating");
             this.setState({ fancyDate: newFancyDate });
             return true;
         }

@@ -1,19 +1,20 @@
 export default class FoodData {
-    location: string;
+    title: string;
     details: string;
-    coords: string;
+    location: string;
     date: number;
     tags: Array<Tag>;
 
-    constructor(location: string, details: string, coords: string, date: number, tags: Array<Tag>) {
-        this.location = location;
+    constructor(title: string, details: string, location: string, date: number, tags: Array<Tag>) {
+        this.title = title;
         this.details = details;
-        this.coords = coords;
+        this.location = location;
         this.date = date;
         this.tags = tags;
     }
 }
 
+// If you add any more tags, you need to allow them with Firestore rules
 export enum Tag {
     OffCampus = "Off-Campus",
     NeedEntry = "Need Entry",
@@ -30,7 +31,7 @@ export const TagDetails = {
     [Tag.NeedEntry]: {
         name: Tag.NeedEntry,
         description: "Food is behind locked doors or in a private event",
-        icon: "sliding-door-lock",
+        icon: "door-sliding-lock",
     },
     [Tag.NeedPhone]: {
         name: Tag.NeedPhone,
@@ -40,6 +41,6 @@ export const TagDetails = {
     [Tag.StudentID]: {
         name: Tag.StudentID,
         description: "Requires your student ID",
-        icon: "id",
+        icon: "credit-card",
     },
 };

@@ -7,85 +7,56 @@ import { ChevronDown } from 'react-native-feather';
 import MapView, { LatLng, Marker, Region } from "react-native-maps";
 import { Button, Icon, IconButton, Text, useTheme } from "react-native-paper";
 
-const osuRegion = {
-    latitude: 39.9995,
-    longitude: -83.0127,
-    latitudeDelta: 0.02,
-    longitudeDelta: 0.02,
-};
-
-export type DetailedLocation = LatLng & {
-    title?: string
-};
+const mapDelta = 0.02;
 
 export default function MapSelectScreen({ navigation }) {
-    const [selectedItem, setSelectedItem] = useState<DetailedLocation>({ ...osuRegion });
-    const [userLocation, setUserLocation] = useState<Region>(null);
-    const [nearbyResults, setUhh] = useState<boolean>(true);
-    const [loading, setLoading] = useState(false);
-    const [suggestionsList, setSuggestionsList] = useState(null);
+    const [region, setRegion] = useState<LatLng>(); // Current location on the map
+    const [userLocation, setUserLocation] = useState<LatLng>(); // User's location. Always provided by PostScreen
 
-    function setNearbyResults(value) {
-        // Only set the results if we have a user location
-        if(userLocation) {
-            setUhh(value);
-        } else {
-            setUhh(false);
-        }
-    }
-    function itemSelected(item: DetailedLocation, animate = true) {
+    const [searchTerm, setSearchTerm] = useState<string>(''); // Search term
+    const [nearbyResults, setNearbyResults] = useState<boolean>(true);
+    const [loading, setLoading] = useState(false);
+    const [suggestionsList, setSuggestionsList] = useState();
+
+    // Sets the region and updates the maps to show it
+    function selectItem(item: any, animate = true) {
         if (item) {
-            let region = { latitude: item.latitude, longitude: item.longitude };
-            setSelectedItem({ ...region, title: item.title });
+            setRegion({ latitude: item.latitude.toFixed(5), longitude: item.longitude.toFixed(5) });
             // Smooth animate to location with deltas
             if (animate) {
-                mapRef.current.animateToRegion({ ...osuRegion, ...region });
+                mapRef.current.animateToRegion({ latitude: item.latitude, longitude: item.longitude, latitudeDelta: mapDelta, longitudeDelta: mapDelta });
             }
         }
     };
 
+    // Refs
     const mapRef = useRef(null);
-    const dropdownController = useRef(null);
     const searchRef = useRef(null);
-
     const theme = useTheme();
     const route = useRoute();
 
     // Route doesn't become available until rendered apparently
     useEffect(() => {
-        // If the location was already set, set the map to center on the location already chosen
-        const location = route.params?.['location'];
-        if (location) {
-            itemSelected(location, true);
-        }
-        // Requests and fills the users location
-        const askLocation = async () => {
-            let { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
-            // If permission was given
-            if (status === 'granted') {
-                let { coords } = await Location.getCurrentPositionAsync();
-                setUserLocation({ ...osuRegion, latitude: coords.latitude, longitude: coords.longitude });
-            } else {
-                // Update permissions
-                setUserLocation(null);
-                setNearbyResults(false);
-            }
-        };
-        // Add listener for when the app is reopened after location is enabled
-        const subscription = AppState.addEventListener('change', async nextAppState => {
-            if (nextAppState === 'active') askLocation();
-        });
-        // Initialize user's location
-        askLocation();
-    }, [route.params?.['location']]);
+        // User location is always expected to be provided
+        setUserLocation(route.params?.['userLocation']);
+        // If a location was already selected use that, otherwise snap to user location
+        selectItem(route.params?.['location'] ?? route.params?.['userLocation']);
+    }, [route.params, nearbyResults]);
+
+    // Update search results when nearby results is toggled
+    useEffect(() => {
+        getSuggestions(searchTerm);
+    }, [nearbyResults]);
+
     // Gets map autocomplete suggestions
-    const getSuggestions = useCallback(async query => {
+    const getSuggestions = useCallback((query: string) => {
+        setSearchTerm(query);
         // Need at least 3 characters to search for something
         if (typeof query !== 'string' || query.length < 3) {
             setSuggestionsList(null);
             return;
         }
-        const getDistance = ((lat1, lon1, lat2, lon2) => {
+        const getDistance = ((lat1: number, lon1: number, lat2: number, lon2: number) => {
             // distance between latitudes
             // and longitudes
             let dLat = (lat2 - lat1) * Math.PI / 180.0;
@@ -103,23 +74,25 @@ export default function MapSelectScreen({ navigation }) {
             return rad * c;
         });
         setLoading(true);
-        // Default to OSU location if not available
-        let location = userLocation || osuRegion;
-        const viewboxScale = 10;
+        const mapDeltaScaled = mapDelta * 10;
         const viewbox = {
-            lat1: location.latitude - location.latitudeDelta * viewboxScale,
-            lon1: location.longitude - location.longitudeDelta * viewboxScale,
-            lat2: location.latitude + location.latitudeDelta * viewboxScale,
-            lon2: location.longitude + location.longitudeDelta * viewboxScale,
-        }
+            lat1: userLocation.latitude - mapDeltaScaled,
+            lon1: userLocation.longitude - mapDeltaScaled,
+            lat2: userLocation.latitude + mapDeltaScaled,
+            lon2: userLocation.longitude + mapDeltaScaled,
+        };
         // Not even entertaining the idea of paying Google a single dime
         // OG URL: https://nominatim.openstreetmap.org/search?q=McDonalds&format=json&lat=37.7749&lon=-122.4194&bounded=1&viewbox=-124.482003,32.528832,-114.131211,42.009519
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&lat=${location.latitude}&lon=${location.longitude}&bounded=1&viewbox=${viewbox.lon1},${viewbox.lat1},${viewbox.lon2},${viewbox.lat2}`;
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json` + (nearbyResults ? `&lat=${userLocation.latitude}&lon=${userLocation.longitude}&bounded=1&viewbox=${viewbox.lon1},${viewbox.lat1},${viewbox.lon2},${viewbox.lat2}` : ``);
         const response = fetch(url).then(async (response) => {
-            const json = await response.json();
+            const json = await response.json().catch(error => {
+                console.log("Failed to parse response as JSON: ", response);
+                // Assume no results
+                return [];
+            });
             const suggestions = json.map(value => {
                 // Calculate distance to user for each location
-                let distance = getDistance(value.lat, value.lon, location.latitude, location.longitude);
+                let distance = getDistance(value.lat, value.lon, userLocation.latitude, userLocation.longitude);
                 return { ...value, distanceToUser: distance >= 10 ? Math.floor(distance) : distance.toFixed(1) };
             }).sort((a, b) => {
                 // Assort locations by distance to user
@@ -139,14 +112,12 @@ export default function MapSelectScreen({ navigation }) {
         }).finally(() => {
             setLoading(false);
         });
-    }, []);
+    }, [nearbyResults, userLocation]);
     return (
         <SafeAreaView style={{ flex: 1 }}>
             {/* Instructions */}
             <View style={{ padding: 10 }}>
                 <Text style={{ textAlign: 'center' }}>Align the crosshair to the location, then hit confirm</Text>
-                {/* Enable location services if disabled */}
-                {!userLocation && <Button style={{ marginTop: 8, backgroundColor: 'white' }} mode="text" icon="near-me" compact onPress={Linking.openSettings}>Enable location services</Button>}
             </View >
             <View style={{ flex: 1 }}>
                 {/* Map */}
@@ -155,10 +126,10 @@ export default function MapSelectScreen({ navigation }) {
                     rotateEnabled={false}
                     showsUserLocation
                     style={{ flex: 1 }}
-                    initialRegion={{ ...selectedItem, latitudeDelta: osuRegion.latitudeDelta, longitudeDelta: osuRegion.longitudeDelta }}
-                    onRegionChangeComplete={(item) => itemSelected(item, false)}>
+                    // initialRegion={{ ...selectedItem, latitudeDelta: mapDelta, longitudeDelta: mapDelta }}
+                    onRegionChangeComplete={(item) => selectItem(item, false)}>
                     {/* Show current location with a marker cause why not */}
-                    <Marker coordinate={{ latitude: selectedItem.latitude, longitude: selectedItem.longitude }}></Marker>
+                    {region && <Marker coordinate={{ latitude: region.latitude, longitude: region.longitude }}></Marker>}
                     {/* Crosshair */}
                     <View style={styles.markerFixed}>
                         <Icon color="rgba(0, 0, 0, 0.2)" source="crosshairs-gps" size={80} />
@@ -183,13 +154,10 @@ export default function MapSelectScreen({ navigation }) {
                                             </View>}
                                     </View>
                                 }
-                                controller={controller => {
-                                    dropdownController.current = controller
-                                }}
                                 direction={Platform.select({ ios: 'down' })}
                                 dataSet={suggestionsList}
                                 onChangeText={getSuggestions}
-                                onSelectItem={(item) => itemSelected(item as any)}
+                                onSelectItem={(item) => selectItem(item as any)}
                                 debounce={600}
                                 suggestionsListMaxHeight={Dimensions.get('window').height * 0.4}
                                 onClear={() => setSuggestionsList(null)}
@@ -210,7 +178,7 @@ export default function MapSelectScreen({ navigation }) {
                                 RightIconComponent={
                                     <>
                                         {/* Show nearby results only */}
-                                        <IconButton icon="google-nearby" iconColor={nearbyResults ? theme.colors.primary : theme.colors.backdrop} style={{ alignSelf: 'center' }} size={20} onPress={() => setNearbyResults(!nearbyResults)} />
+                                        <IconButton icon="google-nearby" iconColor={nearbyResults ? theme.colors.primary : theme.colors.backdrop} style={{ alignSelf: 'center' }} size={20} onPress={() => setNearbyResults(!nearbyResults) } />
                                     </>
                                 }
                                 inputContainerStyle={{ backgroundColor: 'white', borderRadius: 25 }}
@@ -235,7 +203,7 @@ export default function MapSelectScreen({ navigation }) {
                 {/* Bottom */}
                 <View style={{ position: 'absolute', left: 0, right: 0, bottom: 20, margin: 20 }}>
                     {/* Confirm button */}
-                    <Button onPress={() => navigation.navigate("PostScreen", { location: selectedItem })} style={{ justifyContent: 'center' }} mode="contained">Confirm</Button>
+                    <Button onPress={() => navigation.navigate("PostScreen", { location: region })} style={{ justifyContent: 'center' }} mode="contained">Confirm</Button>
                 </View>
             </View>
         </SafeAreaView >
