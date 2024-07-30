@@ -1,57 +1,51 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../firebase.js";
 
 import { useRoute } from '@react-navigation/native';
-import * as Location from 'expo-location';
 import { LatLng } from 'react-native-maps';
-import { Button, Card, Divider, Text, TextInput } from 'react-native-paper';
+import { Banner, Button, Card, Divider, Text, TextInput } from 'react-native-paper';
 import { Tag, TagDetails } from "../components/FoodData";
 import { FoodDataContext } from "../components/FoodDataContext";
 
 const PostScreen = ({ navigation }) => {
   const route = useRoute();
-  const { setSnackbar } = useContext(FoodDataContext);
+  const { setSnackbar, userLocation, requestUserLocation, refreshData } = useContext(FoodDataContext);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [locationEnabled, setLocationEnabled] = useState<boolean>(false);
-  const [userLocation, setUserLocation] = useState<LatLng>();
   const [location, setLocation] = useState<LatLng>(null);
   const [tags, setTags] = useState([]);
 
-  Location.getForegroundPermissionsAsync().then(async response => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    // If location services are enabled
-    if (response.status === 'granted') {
-      setLocationEnabled(true);
-      // Get location
-      let { coords } = await Location.getCurrentPositionAsync();
-      setUserLocation({ latitude: coords.latitude, longitude: coords.longitude });
-    }
-  });
+  const [posting, setPosting] = useState<boolean>(false);
 
   // Receive location from select screen
   useEffect(() => {
     const location = route.params?.['location'];
     if (location) {
       setLocation(location);
-      navigation.goBack();
     }
   }, [route.params]);
 
   const handlePostSubmit = () => {
+    setPosting(true);
     let body = {
       title, description, location, tags
     };
     console.log(body);
     addDoc(collection(db, 'Posts'), body).then((response) => {
       setSnackbar("Post added!");
+      refreshData().then(() => {
+        // Navigate back to FoodScreen
+        navigation.navigate("FoodScreen");
+      });
     }).catch(error => {
       console.error("Failed to create food post", error);
       setSnackbar(String(error));
+    }).finally(() => {
+      setPosting(false);
     });
   };
 
@@ -59,6 +53,7 @@ const PostScreen = ({ navigation }) => {
     if (tags.includes(tag)) {
       setTags(tags.filter(t => t !== tag)); // Remove tag
     } else {
+      setSnackbar(`Added ${tag}\n\n${TagDetails[tag].description}`);
       setTags([...tags, tag]); // Add tag
     }
   };
@@ -98,10 +93,10 @@ const PostScreen = ({ navigation }) => {
           {/* Begin location section. Pick a point on the map */}
           <View style={[{ paddingBottom: 12 }]}>
             {/* Choose a location on the map instead */}
-            {!locationEnabled && <Button onPress={() => { }} style={{ paddingBottom: 4 }} icon="near-me" mode='text'>
+            {!userLocation && <Button onPress={requestUserLocation} style={{ paddingBottom: 4 }} icon="near-me" mode='text'>
               Enable Location Services
             </Button>}
-            <Button disabled={!locationEnabled} onPress={() => navigation.navigate("MapSelectScreen", { location, userLocation })} icon="map-marker" mode='outlined'>
+            <Button disabled={!userLocation} onPress={() => navigation.navigate("MapSelectScreen", { location, userLocation })} icon="map-marker" mode='outlined'>
               {location ? `${location.latitude}, ${location.longitude}` : 'Add Location'}
             </Button>
           </View>
@@ -122,7 +117,7 @@ const PostScreen = ({ navigation }) => {
         {/* Post button */}
         <View style={{ padding: 16, paddingTop: 0, gap: 16 }}>
           <Divider />
-          <Button disabled={!title || !description} mode='contained' onPress={handlePostSubmit}>Post</Button>
+          <Button disabled={posting || !title || !description} mode='contained' onPress={handlePostSubmit}>{posting ? 'Posting...' : 'Post'}</Button>
         </View>
       </ScrollView>
     </SafeAreaView>

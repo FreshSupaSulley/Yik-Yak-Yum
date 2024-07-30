@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 
-import { SectionList, StyleSheet, View } from "react-native";
-import { Button, Card, Divider, useTheme } from 'react-native-paper';
+import { Image, SectionList, StyleSheet, View } from "react-native";
+import { Banner, Button, Card, Divider, Icon, useTheme } from 'react-native-paper';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FoodDataContext } from "../components/FoodDataContext";
 import FoodPost from "../components/FoodPost";
@@ -9,14 +9,16 @@ import FoodPost from "../components/FoodPost";
 // Navigator is supplied by default
 export default function FoodScreen({ navigation }) {
   // Get data
-  const { foodData, setSnackbar, refreshData } = useContext(FoodDataContext);
-  console.log(foodData, refreshData);
+  const { foodData, userLocation, requestUserLocation, refreshData } = useContext(FoodDataContext);
   // Set first title of data
   // foodData[0].title = "Today";
   // Constantly check each minute for new updates
   const [myTime, setMyTime] = useState(new Date());
   useEffect(() => {
     var timerID = setInterval(() => {
+      // Check for new updates
+      refreshData();
+      // Update local time
       setMyTime(new Date(myTime.getTime() + 1));
     }, 60000);
     return () => clearInterval(timerID);
@@ -24,12 +26,14 @@ export default function FoodScreen({ navigation }) {
   const scrollRef = useRef(null);
   // Swipe to refresh
   const [refreshing, setRefreshing] = React.useState(false);
-  const onRefresh = React.useCallback(() => {
+  const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    setTimeout(() => {
+    refreshData().finally(() => {
       setRefreshing(false);
-    }, 2000);
+    })
   }, []);
+
+  const [showBanner, setShowBanner] = useState<boolean>(true);
 
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -38,6 +42,14 @@ export default function FoodScreen({ navigation }) {
     <SafeAreaProvider>
       {/* Adding paddingBottom seems to break shit */}
       <View style={{ paddingTop: insets.top, flex: 1, backgroundColor: theme.colors.onPrimary }}>
+        {/* Show banner to allow user location if not enabled */}
+        <Banner visible={showBanner && !userLocation}
+          actions={[{ label: 'Enable Location Services', onPress: requestUserLocation }, { label: 'Close', onPress: () => setShowBanner(false), }]}
+          icon={({ size }) => (
+            <Icon size={24} source="near-me"></Icon>
+          )}>
+          Enable location services to calculate your distance to food listings.
+        </Banner>
         <SectionList
           ref={scrollRef}
           showsVerticalScrollIndicator={false}
@@ -48,7 +60,7 @@ export default function FoodScreen({ navigation }) {
             return (
               <FoodPost onPress={() => {
                 navigation.navigate("MapScreen", { index });
-              }} addMessage={setSnackbar} data={item} theme={theme} />
+              }} data={item} theme={theme} />
             )
           }} renderSectionHeader={({ section: { title, index } }) => (
             <>

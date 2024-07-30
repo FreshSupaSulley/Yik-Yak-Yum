@@ -1,11 +1,13 @@
+import { LatLng } from "react-native-maps";
+
 export default class FoodData {
     title: string;
     details: string;
-    location: string;
+    location: LatLng;
     date: number;
     tags: Array<Tag>;
 
-    constructor(title: string, details: string, location: string, date: number, tags: Array<Tag>) {
+    constructor(title: string, details: string, location: LatLng, date: number, tags: Array<Tag>) {
         this.title = title;
         this.details = details;
         this.location = location;

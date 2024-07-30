@@ -1,8 +1,8 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Animated, StyleSheet, View } from "react-native";
-import { IconButton, Snackbar, useTheme } from "react-native-paper";
+import { Animated } from "react-native";
+import { IconButton, Snackbar, useTheme } from 'react-native-paper';
 import { FoodDataProvider } from "./components/FoodDataContext";
 
 // Screens

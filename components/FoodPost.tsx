@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
 import { View } from 'react-native';
-import { Card, Chip, MD3Theme, Text } from 'react-native-paper';
+import { Button, Card, Chip, Icon, IconButton, MD3Theme, Text } from 'react-native-paper';
 
 import FoodData, { Tag, TagDetails } from './FoodData';
+import { FoodDataContext } from "./FoodDataContext";
+import { LatLng } from "react-native-maps";
 
 type Props = {
-    addMessage: (string) => void,
     onPress: () => void,
     data: FoodData;
     theme: MD3Theme;
@@ -13,6 +14,7 @@ type Props = {
 
 interface State {
     expanded: boolean;
+    location: LatLng | null;
     fancyDate: string;
 }
 
@@ -21,6 +23,7 @@ class FoodPost extends React.Component<Props, State> {
         super(props);
         this.state = {
             expanded: false,
+            location: props.data.location,
             fancyDate: getTimeAgo(props.data.date)
         };
     }
@@ -29,25 +32,67 @@ class FoodPost extends React.Component<Props, State> {
     //     // this.setState(prevState => ({ expanded: !prevState.expanded }));
     // }
     render() {
-        const { addMessage, data, theme, ...rest } = this.props;
-        const { fancyDate } = this.state;
+        const { data, theme, ...rest } = this.props;
+        const { location, fancyDate } = this.state;
+        const getDistance = ((lat1: number, lon1: number, lat2: number, lon2: number) => {
+            // distance between latitudes
+            // and longitudes
+            let dLat = (lat2 - lat1) * Math.PI / 180.0;
+            let dLon = (lon2 - lon1) * Math.PI / 180.0;
+            // convert to radiansa
+            lat1 = (lat1) * Math.PI / 180.0;
+            lat2 = (lat2) * Math.PI / 180.0;
+            // apply formulae
+            let a = Math.pow(Math.sin(dLat / 2), 2) +
+                Math.pow(Math.sin(dLon / 2), 2) *
+                Math.cos(lat1) *
+                Math.cos(lat2);
+            let rad = 3961;
+            let c = 2 * Math.asin(Math.sqrt(a));
+            return rad * c;
+        });
+        function calculateDistance(userLocation: LatLng) {
+            let distance = getDistance(location.latitude, location.longitude, userLocation.latitude, userLocation.longitude);
+            // Don't include decimals if ≥ 10. Use a single decimal for closer posts. Distance of 0 shouldn't show the extra decimal point
+            let trimmed = distance >= 10 ? Math.floor(distance) : distance == 0 ? 0 : distance.toFixed(1);
+            return `${trimmed} mile${trimmed == 1 ? '' : 's'}`;
+        }
+        function ratePressed() {
+            console.log('prompt to login');
+        }
         return (
-            <View style={{ margin: 8 }}>
-                <Card mode="contained" style={{ backgroundColor: theme.colors.inverseOnSurface }} onPress={this.props.onPress}>
-                    <Card.Title titleStyle={{ fontWeight: 'bold', paddingTop: 8 }} titleVariant="titleLarge" titleNumberOfLines={2} title={data.title} subtitle={fancyDate} rightStyle={{ paddingRight: 20 }}
-                        right={(props) => <Text>&lt; 3 miles</Text>} />
-                    {/* Show chips */}
-                    <Card.Content style={{ paddingTop: 8, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-                        {data.tags.map((tag, key) => (
-                            <Chip compact key={key} onPress={() => addMessage(TagDetails[tag].description)} icon={TagDetails[tag].icon}>{TagDetails[tag].name}</Chip>
-                        ))}
-                    </Card.Content>
-                    {/* Body */}
-                    <Card.Content style={{ paddingTop: 8 }}>
-                        <Text variant="bodyLarge">{data.details}</Text>
-                    </Card.Content>
-                </Card>
-            </View>
+            <FoodDataContext.Consumer>
+                {({ userLocation, setSnackbar }) => (
+                    <View style={{ margin: 8 }}>
+                        <Card mode="contained" style={{ backgroundColor: theme.colors.inverseOnSurface }}>
+                            {/* If we have a user location and this post has an attached location to it */}
+                            <Card.Title titleStyle={{ fontWeight: 'bold', paddingTop: 8 }} titleVariant="titleLarge" titleNumberOfLines={2} title={data.title} subtitle={fancyDate} rightStyle={{ paddingRight: 20 }}
+                                right={(props) => (userLocation && location) && <Text>{calculateDistance(userLocation)}</Text>} />
+                            {/* Show chips */}
+                            <Card.Content style={{ paddingTop: 8, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                                {data.tags.map((tag, key) => (
+                                    <Chip compact key={key} onPress={() => setSnackbar(TagDetails[tag].description)} icon={TagDetails[tag].icon}>{TagDetails[tag].name}</Chip>
+                                ))}
+                            </Card.Content>
+                            {/* Body */}
+                            <Card.Content style={{ paddingTop: 8 }}>
+                                <Text variant="bodyLarge">{data.details}</Text>
+                            </Card.Content>
+                            {/* Actions */}
+                            <Card.Actions>
+                                {/* Left */}
+                                <View style={{ marginRight: 'auto', flexDirection: 'row' }}>
+                                    <Button onPress={ratePressed} icon="thumbs-up-down">+1</Button>
+                                </View>
+                                {/* Right */}
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Button mode="contained" onPress={this.props.onPress}>Map</Button>
+                                </View>
+                            </Card.Actions>
+                        </Card>
+                    </View>
+                )}
+            </FoodDataContext.Consumer>
         );
     }
     // Fired at least once per minute to update the subtitle
