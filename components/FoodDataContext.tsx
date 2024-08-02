@@ -1,4 +1,4 @@
-import { collection, getDocsFromServer, query } from 'firebase/firestore';
+import { collection, DocumentData, getDocsFromServer, query, QueryDocumentSnapshot } from 'firebase/firestore';
 import { createContext, useEffect, useState } from "react";
 import { LatLng } from "react-native-maps";
 import { db } from '../firebase.js';
@@ -54,33 +54,18 @@ export const FoodDataProvider = ({ children, initialized = () => { }, failed = (
         // Seems like this won't ever fail if offline, but will fail when rules deny the request?? How do we catch what happens when offline?
         // Never use caching, always call from server. No point in calling if we're just gonna get cached responses
         await getDocsFromServer(query(collection(db, "Posts"))).then((response) => {
-            let dbPosts = response;
-            // Pretend we called the API, got the last 5 days
-            const date = new Date();
-            let newData = [];
-            [...Array(1)].map((post, index) => {
-                // API response
-                let posts = [];
+            let posts = [];
+            let index = 0;
+            response.forEach((post) => {
                 // Temp offset the date
-                var prevDate = new Date();
-                prevDate.setDate(date.getDate() - index);
-
-                let j = 0;
-                dbPosts.forEach((snap) => {
-                    let data = snap.data();
-                    posts[j] = new FoodData(data.title, data.description, data.location, prevDate.getTime(), data.tags);
-                    j++;
-                })
-
-                // Fill in array
-                newData[index] = {
-                    title: prevDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric' }),
-                    index: index,
-                    data: posts,
-                };
+                var date = new Date();
+                date.setDate(date.getDate() - ++index);
+                // Add to FoodData
+                let data = post.data();
+                posts.push(new FoodData(data.title, data.description, data.location, date.getTime(), data.tags));
             });
             // Update global data
-            setFoodData(newData);
+            setFoodData(posts);
             // Fire when data is ready
             initialized();
         }).catch((error) => {

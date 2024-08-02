@@ -118,7 +118,7 @@ export default function MapSelectScreen({ navigation }) {
             {/* Instructions */}
             <View style={{ padding: 10 }}>
                 <Text style={{ textAlign: 'center' }}>Align the crosshair to the location, then hit confirm</Text>
-            </View >
+            </View>
             <View style={{ flex: 1 }}>
                 {/* Map */}
                 <MapView

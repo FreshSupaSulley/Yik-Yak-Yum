@@ -32,7 +32,8 @@ const PostScreen = ({ navigation }) => {
   const handlePostSubmit = () => {
     setPosting(true);
     let body = {
-      title, description, location, tags
+      title, description, location, tags,
+      timestamp: Date.now()
     };
     console.log(body);
     addDoc(collection(db, 'Posts'), body).then((response) => {

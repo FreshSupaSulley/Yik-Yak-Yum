@@ -1,16 +1,16 @@
 import React, { useContext } from "react";
-import { View } from 'react-native';
+import { StyleProp, View, ViewStyle } from 'react-native';
 import { Button, Card, Chip, Icon, IconButton, MD3Theme, Text } from 'react-native-paper';
 
 import FoodData, { Tag, TagDetails } from './FoodData';
 import { FoodDataContext } from "./FoodDataContext";
 import { LatLng } from "react-native-maps";
 
-type Props = {
-    onPress: () => void,
+type Props = React.PropsWithChildren<{
     data: FoodData;
     theme: MD3Theme;
-};
+    style?: StyleProp<ViewStyle>;
+}>;
 
 interface State {
     expanded: boolean;
@@ -27,12 +27,8 @@ class FoodPost extends React.Component<Props, State> {
             fancyDate: getTimeAgo(props.data.date)
         };
     }
-    // handlePress = () => {
-    //     console.log("pressed lol");
-    //     // this.setState(prevState => ({ expanded: !prevState.expanded }));
-    // }
     render() {
-        const { data, theme, ...rest } = this.props;
+        const { data, theme, children } = this.props;
         const { location, fancyDate } = this.state;
         const getDistance = ((lat1: number, lon1: number, lat2: number, lon2: number) => {
             // distance between latitudes
@@ -63,14 +59,14 @@ class FoodPost extends React.Component<Props, State> {
         return (
             <FoodDataContext.Consumer>
                 {({ userLocation, setSnackbar }) => (
-                    <View style={{ margin: 8 }}>
+                    <View style={this.props.style}>
                         <Card mode="contained" style={{ backgroundColor: theme.colors.inverseOnSurface }}>
                             {/* If we have a user location and this post has an attached location to it */}
                             <Card.Title titleStyle={{ fontWeight: 'bold', paddingTop: 8 }} titleVariant="titleLarge" titleNumberOfLines={2} title={data.title} subtitle={fancyDate} rightStyle={{ paddingRight: 20 }}
                                 right={(props) => (userLocation && location) && <Text>{calculateDistance(userLocation)}</Text>} />
                             {/* Show chips */}
                             <Card.Content style={{ paddingTop: 8, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-                                {data.tags.map((tag, key) => (
+                                {data.tags && data.tags.map((tag, key) => (
                                     <Chip compact key={key} onPress={() => setSnackbar(TagDetails[tag].description)} icon={TagDetails[tag].icon}>{TagDetails[tag].name}</Chip>
                                 ))}
                             </Card.Content>
@@ -84,10 +80,11 @@ class FoodPost extends React.Component<Props, State> {
                                 <View style={{ marginRight: 'auto', flexDirection: 'row' }}>
                                     <Button onPress={ratePressed} icon="thumbs-up-down">+1</Button>
                                 </View>
-                                {/* Right */}
-                                <View style={{ flexDirection: 'row' }}>
-                                    <Button mode="contained" onPress={this.props.onPress}>Map</Button>
-                                </View>
+                                {/* Right, if children exists */}
+                                {children && <View style={{ flexDirection: 'row' }}>
+                                    {/* Add children if provided */}
+                                    {children}
+                                </View>}
                             </Card.Actions>
                         </Card>
                     </View>
