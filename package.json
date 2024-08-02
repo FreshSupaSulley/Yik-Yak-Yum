@@ -17,6 +17,7 @@
     "@react-navigation/stack": "^6.4.1",
     "@teovilla/react-native-web-maps": "^0.9.5",
     "@types/react": "~18.2.79",
+    "@types/react-native-maps": "^0.24.2",
     "expo": "^51.0.20",
     "expo-linear-gradient": "^13.0.2",
     "expo-location": "~17.0.1",
