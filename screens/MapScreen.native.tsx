@@ -2,6 +2,7 @@ import { Button, Card, DataTable, Divider, IconButton, Text, useTheme } from "re
 import { StyleSheet, Image, Platform, SafeAreaView, View, Linking, useWindowDimensions } from "react-native";
 import { Marker, Callout, LatLng, Region } from "react-native-maps";
 import MapView from "react-native-map-clustering";
+import Map from "react-native-maps";
 import { useContext, useEffect, useRef, useState } from "react";
 import { useRoute } from "@react-navigation/native";
 import { FoodDataContext } from "../components/FoodDataContext";
@@ -20,9 +21,11 @@ export default function MapScreen({ navigation }) {
   const { width } = useWindowDimensions();
   const { foodData, userLocation } = useContext(FoodDataContext);
   const [processedData, setProcessedData] = useState([]);
+  const [selectedMarker, setSelectedMarker] = useState(null);
+
   const theme = useTheme();
   const route = useRoute();
-  const mapRef = useRef<MapView>();
+  const mapRef = useRef<Map>();
 
   // Only show posts with locations attached
   useEffect(() => {
@@ -32,9 +35,9 @@ export default function MapScreen({ navigation }) {
   // Route doesn't become available until rendered apparently
   useEffect(() => {
     let index = route.params?.['index'];
-    if(index >= 0) {
-      // Add deltas back
-      mapRef.current.animateToRegion({ ...osuRegion, ...foodData[index].location });
+    if (index >= 0) {
+      // Zoom far enough in so clusters won't matter
+      mapRef.current.animateToRegion({ latitudeDelta: 0.0005, longitudeDelta: 0.0005, ...foodData[index].location });
     }
   }, [route.params]);
 
@@ -53,8 +56,8 @@ export default function MapScreen({ navigation }) {
         {/* Show all markers on food posts where locations are attached. Clustering comes in clutch for us */}
         {processedData.map((value, index) => {
           return (
-            <Marker key={index} coordinate={value.location}>
-              <Callout style={{ width: width - width / 5, padding: 0, margin: 0, borderWidth: 0 }}>
+            <Marker pinColor={index == selectedMarker ? theme.colors.primary : 'red'} onSelect={() => setSelectedMarker(index)} onDeselect={() => setSelectedMarker(null)} tracksViewChanges={false} key={index} coordinate={value.location}>
+              <Callout tooltip={true} style={{ width: width - width / 5 }}>
                 <FoodPost data={value} theme={theme} style={{ margin: 0, padding: 0 }}>
                   <Button icon={"open-in-new"} compact mode="text" onPress={() => Linking.openURL(Platform.select({ ios: 'maps://0,0?q=', android: 'geo:0,0?q=' }) + `${value.location.latitude},${value.location.longitude}`)}>Open in Maps</Button>
                 </FoodPost>
@@ -74,7 +77,7 @@ export default function MapScreen({ navigation }) {
           </Card>
         </View>
         {/* Next line over, on the right */}
-        <IconButton disabled={!userLocation} icon="near-me" mode="contained" size={24} onPress={() => mapRef.current.animateToRegion(userLocation)} />
+        <IconButton disabled={!userLocation} icon="near-me" mode="contained" size={24} onPress={() => mapRef.current.animateToRegion({ ...osuRegion, ...userLocation })} />
       </SafeAreaView>
     </>
   );

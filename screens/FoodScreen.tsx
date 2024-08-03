@@ -9,7 +9,7 @@ const backgroundImage = require('../assets/red_background.jpg');
 
 export default function FoodScreen({ navigation }) {
   // Get data from context
-  const { foodData, userLocation, requestUserLocation, refreshData } = useContext(FoodDataContext);
+  const { foodData, refreshData } = useContext(FoodDataContext);
 
   // Constantly check each minute for new updates
   const [myTime, setMyTime] = useState(new Date());
@@ -35,24 +35,11 @@ export default function FoodScreen({ navigation }) {
     navigation.navigate("MapScreen", { index });
   }
 
-  const [showBanner, setShowBanner] = useState(true);
   const theme = useTheme(); // Get theme from react-native-paper
 
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
-        {/* Show banner to allow user location if not enabled */}
-        <Banner
-          visible={showBanner && !userLocation}
-          actions={[
-            { label: 'Enable Location Services', onPress: requestUserLocation },
-            { label: 'Close', onPress: () => setShowBanner(false) }
-          ]}
-          style={styles.banner}
-        >
-          Enable location services to calculate your distance to food listings.
-        </Banner>
-
         {/* FlatList to display posts */}
         <FlatList
           contentContainerStyle={styles.listContent}
@@ -91,9 +78,10 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: 'cover',
   },
-  banner: {
-    backgroundColor: '#cf7e85', // New York Pink
-  },
+  // no
+  // banner: {
+  //   backgroundColor: '#cf7e85', // New York Pink
+  // },
   listContent: {
     paddingTop: 10,
   },

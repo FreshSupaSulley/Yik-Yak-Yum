@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Image, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../firebase.js";
 
 import { useRoute } from '@react-navigation/native';
 import { LatLng } from 'react-native-maps';
-import { Banner, Button, Card, Divider, Text, TextInput } from 'react-native-paper';
+import { Button, Card, Divider, Text, TextInput } from 'react-native-paper';
 import { Tag, TagDetails } from "../components/FoodData";
 import { FoodDataContext } from "../components/FoodDataContext";
 

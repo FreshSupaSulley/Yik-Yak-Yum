@@ -1,9 +1,10 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Animated } from "react-native";
-import { IconButton, Snackbar, useTheme } from 'react-native-paper';
-import { FoodDataProvider } from "./components/FoodDataContext";
+import { Animated, View } from "react-native";
+import { Banner, IconButton, Snackbar, Text, useTheme } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FoodDataContext, FoodDataProvider } from "./components/FoodDataContext";
 
 // Screens
 import FoodScreen from "./screens/FoodScreen";
@@ -15,7 +16,7 @@ import SplashScreen from "./screens/SplashScreen";
 import ScalablePress from "./components/ScalablePress";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Custom tab button so we can add fancy click effects
 const TabButton = (props) => {
@@ -99,7 +100,13 @@ function Tabs({ navigation }) {
 const Stack = createNativeStackNavigator();
 
 export const Navigation = () => {
+  // SafeAreaView insets for banner
+  const insets = useSafeAreaInsets();
+  // Navigator ref
   const navigationRef = useRef(null);
+  // Request to show location
+  const [bannerEnabled, setBannerEnabled] = useState(true);
+  const [currentRoute, setCurrentRoute] = useState(0);
   // Snackbar
   const [snackbarText, setSnackbarText] = useState('');
   const [snackbarVisible, setSnackbarVisibility] = useState(false);
@@ -112,8 +119,25 @@ export const Navigation = () => {
     }, 0);
   };
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} onStateChange={(e) => setCurrentRoute(e.index)}>
       <FoodDataProvider initialized={() => navigationRef.current.navigate("Main")} failed={(error) => navigationRef.current.navigate("SplashScreen", { error })} onSnackbar={addMessage} >
+        {/* Show banner to allow user location if not enabled */}
+        <FoodDataContext.Consumer>
+          {({ userLocation, foodData, requestUserLocation }) => (
+            <Banner
+              visible={bannerEnabled && foodData && !userLocation}
+              actions={[
+                { label: 'Enable Location Services', icon: 'near-me', onPress: requestUserLocation },
+                { label: 'Close', onPress: () => setBannerEnabled(false) }
+              ]}
+            >
+              <View style={{ paddingTop: insets.top, gap: 4 }}>
+                <Text style={{ fontWeight: 'bold' }} variant="titleLarge">Location disabled</Text>
+                <Text>Enable location services to calculate your distance to posts.</Text>
+              </View>
+            </Banner>
+          )}
+        </FoodDataContext.Consumer>
         {/* Configure global screen options */}
         <Stack.Navigator screenOptions={{ gestureEnabled: false, headerShown: false, headerBackTitle: "Back" }}>
           {/* Splash */}
@@ -130,7 +154,7 @@ export const Navigation = () => {
         </Stack.Navigator>
       </FoodDataProvider>
       {/* Snackbar for popup alerts */}
-      <Snackbar style={{ marginBottom: 60 }} duration={3000} onIconPress={() => { setSnackbarVisibility(false) }} icon='close' visible={snackbarVisible} onDismiss={() => setSnackbarVisibility(false)}>
+      <Snackbar style={{ marginBottom: 70 }} duration={3000} onIconPress={() => { setSnackbarVisibility(false) }} icon='close' visible={snackbarVisible} onDismiss={() => setSnackbarVisibility(false)}>
         {snackbarText}
       </Snackbar>
     </NavigationContainer>
