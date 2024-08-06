@@ -44,7 +44,7 @@ function Tabs({ navigation }) {
         component={FoodScreen}
         options={{
           tabBarIcon: ({ focused, color }) => (
-            <Ionicons name={focused ? "fast-food" : "fast-food-outline"} size={iconSize} color={color} />
+            <Ionicons name={focused ? "fast-food" : "fast-food-outline"} size={iconSize} color={focused ? '#b36f6b' : '#baacac'} />
           ),
         }}
       />
@@ -75,7 +75,7 @@ function Tabs({ navigation }) {
             <ScalablePress onPressIn={onPressIn} onPressOut={onPressOut} activeScale={0.9} activeOpacity={1} onPress={() => navigation.navigate('PostScreen')} style={{ flex: 0, flexBasis: 'auto', transform: [{ translateY: -15 }] }}>
               {/* Shadow is broken on web and idc enough to fix it */}
               <Animated.View style={[{ transform: [{ rotateZ: spin }] }]}>
-                <IconButton iconColor="white" containerColor={color} icon="plus" style={{ alignItems: 'center' }} size={38} />
+                <IconButton iconColor="white" containerColor={'#b36f6b'} icon="plus" style={{ alignItems: 'center' }} size={38} />
               </Animated.View>
             </ScalablePress>
           )
@@ -89,7 +89,7 @@ function Tabs({ navigation }) {
           title: "Map",
           headerShown: false,
           tabBarIcon: ({ focused, color }) => (
-            <Ionicons name={focused ? "map" : "map-outline"} size={iconSize} color={color} />
+            <Ionicons name={focused ? "map" : "map-outline"} size={iconSize} color={'#b36f6b'} />
           ),
         }}
       />
